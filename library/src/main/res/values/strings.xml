@@ -1,3 +1,11 @@
 <resources>
-    <string name="app_name">Library</string>
+    <string name="download_tips">提示</string>
+    <string name="download_download_fail">下载失败!</string>
+    <string name="download_current_downloading_progress">当前进度:%s</string>
+    <string name="download_current_downloaded_length">已下载:%s</string>
+    <string name="download_trickter">您有一条新通知</string>
+    <string name="download_file_download">文件下载</string>
+    <string name="download_click_open">点击打开</string>
+    <string name="download_coming_soon_download">即将开始下载文件</string>
+    <string name="download_max_file_length_limit">选择的文件不能大于%sMB</string>
 </resources>

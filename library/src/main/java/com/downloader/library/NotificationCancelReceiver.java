@@ -20,32 +20,30 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-import com.just.agentweb.LogUtils;
-
 /**
  * @author cenxiaozhong
  * @date 2018/2/12
  */
 public class NotificationCancelReceiver extends BroadcastReceiver {
 
-	public static final String ACTION = "com.agentweb.cancelled";
+    public static final String ACTION = "com.download.cancelled";
 
-	public NotificationCancelReceiver() {
-	}
+    public NotificationCancelReceiver() {
+    }
 
-	@Override
-	public void onReceive(Context context, Intent intent) {
-		String action = intent.getAction();
-		if (action.equals(ACTION)) {
-			try {
-				String url = intent.getStringExtra("TAG");
-				ExecuteTasksMap.getInstance().cancelTask(url);
-			} catch (Throwable ignore) {
-				if (LogUtils.isDebug()) {
-					ignore.printStackTrace();
-				}
-			}
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        String action = intent.getAction();
+        if (action.equals(ACTION)) {
+            try {
+                String url = intent.getStringExtra("TAG");
+                ExecuteTasksMap.getInstance().cancelTask(url);
+            } catch (Throwable ignore) {
+                if (Rumtime.getInstance().isDebug()) {
+                    ignore.printStackTrace();
+                }
+            }
 
-		}
-	}
+        }
+    }
 }

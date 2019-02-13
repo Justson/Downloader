@@ -63,9 +63,9 @@ public class DownloadNotifier {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 mBuilder = new NotificationCompat.Builder(mContext,
-                        mChannelId = mContext.getPackageName().concat(AGENTWEB_VERSION));
+                        mChannelId = mContext.getPackageName().concat(Rumtime.getInstance().getVersion()));
                 NotificationChannel mNotificationChannel = new NotificationChannel(mChannelId,
-                        AgentWebUtils.getApplicationName(context),
+                        Rumtime.getInstance().getApplicationName(context),
                         NotificationManager.IMPORTANCE_LOW);
                 NotificationManager mNotificationManager = (NotificationManager) mContext
                         .getSystemService(NOTIFICATION_SERVICE);
@@ -85,7 +85,7 @@ public class DownloadNotifier {
 
     void initBuilder(DownloadTask downloadTask) {
         String title = (null == downloadTask.getFile() || TextUtils.isEmpty(downloadTask.getFile().getName())) ?
-                mContext.getString(R.string.agentweb_file_download) :
+                mContext.getString(R.string.download_file_download) :
                 downloadTask.getFile().getName();
 
         if (title.length() > 20) {
@@ -94,9 +94,9 @@ public class DownloadNotifier {
         this.mDownloadTask = downloadTask;
         mBuilder.setContentIntent(PendingIntent.getActivity(mContext, 200, new Intent(), PendingIntent.FLAG_UPDATE_CURRENT));
         mBuilder.setSmallIcon(downloadTask.getIcon());
-        mBuilder.setTicker(mContext.getString(R.string.agentweb_trickter));
+        mBuilder.setTicker(mContext.getString(R.string.download_trickter));
         mBuilder.setContentTitle(title);
-        mBuilder.setContentText(mContext.getString(R.string.agentweb_coming_soon_download));
+        mBuilder.setContentText(mContext.getString(R.string.download_coming_soon_download));
         mBuilder.setWhen(System.currentTimeMillis());
         mBuilder.setAutoCancel(true);
         mBuilder.setPriority(NotificationCompat.PRIORITY_LOW);
@@ -152,7 +152,7 @@ public class DownloadNotifier {
             mBuilder.addAction(mAction);
 
         }
-        mBuilder.setContentText(mContext.getString(R.string.agentweb_current_downloading_progress, (progress + "%")));
+        mBuilder.setContentText(mContext.getString(R.string.download_current_downloading_progress, (progress + "%")));
         this.setProgress(100, progress, false);
         sent();
     }
@@ -169,7 +169,7 @@ public class DownloadNotifier {
             mBuilder.addAction(mAction);
 
         }
-        mBuilder.setContentText(mContext.getString(R.string.agentweb_current_downloaded_length, byte2FitMemorySize(loaded)));
+        mBuilder.setContentText(mContext.getString(R.string.download_current_downloaded_length, byte2FitMemorySize(loaded)));
         this.setProgress(100, 20, true);
         sent();
     }
@@ -210,7 +210,7 @@ public class DownloadNotifier {
                 ignore.printStackTrace();
             }
         }
-        Intent mIntent = AgentWebUtils.getCommonFileIntentCompat(mContext, mDownloadTask.getFile());
+        Intent mIntent = Rumtime.getInstance().getCommonFileIntentCompat(mContext, mDownloadTask.getFile());
         setDelecte(null);
         if (null != mIntent) {
             if (!(mContext instanceof Activity)) {
@@ -221,7 +221,7 @@ public class DownloadNotifier {
                             mNotificationId * 10000, mIntent,
                             PendingIntent.FLAG_UPDATE_CURRENT);
 
-            mBuilder.setContentText(mContext.getString(R.string.agentweb_click_open));
+            mBuilder.setContentText(mContext.getString(R.string.download_click_open));
             mBuilder.setProgress(100, 100, false);
             mBuilder.setContentIntent(rightPendIntent);
             sent();
