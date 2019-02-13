@@ -149,6 +149,8 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
     public static final int ERROR_LOAD = 0x409;
     public static final int ERROR_SERVICE = 0x503;
     public static final int SUCCESSFUL = 0x200;
+    public static final int HTTP_RANGE_NOT_SATISFIABLE = 416;
+
     private static final SparseArray<String> DOWNLOAD_MESSAGE = new SparseArray<>();
     private static final Executor SERIAL_EXECUTOR = new SerialExecutor();
     private static final Handler HANDLER = new Handler(Looper.getMainLooper());
@@ -179,6 +181,10 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
         if (null == downloadTask) {
             throw new NullPointerException("DownloadTask can't be null ");
         }
+        if (null == downloadTask.getFile() || !downloadTask.getFile().exists()) {
+            File file = Rumtime.getInstance().uniqueFile(downloadTask, null);
+            downloadTask.setFile(file);
+        }
         downloadTask.setStatus(DownloadTask.STATUS_DOWNLOADING);
         createNotifier();
         if (null != this.mDownloadNotifier) {
@@ -188,7 +194,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 
     private boolean checkSpace() {
         DownloadTask downloadTask = this.mDownloadTask;
-        if (downloadTask.getLength() - downloadTask.getFile().length() > (getAvailableStorage() - 100 * 1024 * 1024)) {
+        if (downloadTask.getTotalsLength() - downloadTask.getFile().length() > (getAvailableStorage() - 100 * 1024 * 1024)) {
             Rumtime.getInstance().logError(TAG, " 空间不足");
             return false;
         }
@@ -254,36 +260,43 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
                 mHttpURLConnection.connect();
                 final boolean isEncodingChunked = "chunked".equalsIgnoreCase(
                         mHttpURLConnection.getHeaderField("Transfer-Encoding"));
-                long tmpLength = -1;
-                final boolean hasLength = ((tmpLength = getHeaderFieldLong(mHttpURLConnection, "Content-Length")) > 0);
+                long contentLength = -1;
+                final boolean hasLength = ((contentLength = getHeaderFieldLong(mHttpURLConnection, "Content-Length")) > 0);
                 // 获取不到文件长度
-                final boolean finishKnown = isEncodingChunked && hasLength;
+                final boolean finishKnown = (isEncodingChunked && hasLength || !isEncodingChunked && !hasLength);
                 if (finishKnown) {
-                    Rumtime.getInstance().logError(TAG, "can't know size of download, giving up ,"
+                    Rumtime.getInstance().logError(TAG, " error , giving up ,"
                             + "  EncodingChunked:" + isEncodingChunked
-                            + "  hasLength:" + hasLength + " response length:" + tmpLength);
+                            + "  hasLength:" + hasLength + " response length:" + contentLength);
                     return ERROR_LOAD;
                 }
                 int responseCode = mHttpURLConnection.getResponseCode();
                 switch (responseCode) {
                     case HTTP_OK:
-                        this.mTotals = tmpLength;
+                        this.mTotals = contentLength;
                         start(mHttpURLConnection);
                         if (!checkSpace()) {
                             return ERROR_STORAGE;
                         }
+                        downloadTask.setTotalsLength(this.mTotals);
+                        if (downloadTask.getFile().length() >= contentLength) {
+                            this.mTotals = contentLength;
+                            return SUCCESSFUL;
+                        }
                         saveEtag(mHttpURLConnection);
+                        downloadTask.setTotalsLength(this.mTotals);
                         return transferData(getInputStream(mHttpURLConnection),
                                 new LoadingRandomAccessFile(downloadTask.getFile()),
                                 false);
                     case HTTP_PARTIAL:
                         if (isEncodingChunked) {
                             this.mTotals = -1L;
-                        } else if (this.mTotals > 0L && tmpLength + downloadTask.getFile().length() != this.mTotals) {  // 服务端响应文件长度不正确，或者本地文件长度被修改。
+                        } else if (this.mTotals > 0L && contentLength + downloadTask.getFile().length() != this.mTotals) {  // 服务端响应文件长度不正确，或者本地文件长度被修改。
                             return ERROR_LOAD;
                         } else if (this.mTotals <= 0L) {
-                            this.mTotals = tmpLength + downloadTask.getFile().length();
+                            this.mTotals = contentLength + downloadTask.getFile().length();
                         }
+                        downloadTask.setTotalsLength(this.mTotals);
                         start(mHttpURLConnection);
                         if (!checkSpace()) {
                             return ERROR_STORAGE;
@@ -291,6 +304,12 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
                         return transferData(getInputStream(mHttpURLConnection),
                                 new LoadingRandomAccessFile(downloadTask.getFile()),
                                 !isEncodingChunked);
+                    case HTTP_RANGE_NOT_SATISFIABLE:
+                        if (null != downloadTask.getFile()) {
+                            downloadTask.getFile().delete();
+                            downloadTask.getFile().createNewFile();
+                        }
+                        break;
                     case HTTP_MOVED_PERM:
                     case HTTP_MOVED_TEMP:
                     case HTTP_SEE_OTHER:
@@ -323,11 +342,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
         if (TextUtils.isEmpty(downloadTask.getMimetype())) {
             downloadTask.setMimetype(httpURLConnection.getHeaderField("Content-Type"));
         }
-        downloadTask.mTotalsLength = this.mTotals;
-        if (null == downloadTask.getFile() || !downloadTask.getFile().exists()) {
-            File file = Rumtime.getInstance().createFile(downloadTask.mContext, downloadTask);
-            downloadTask.setFile(file);
-        }
+        downloadTask.setContentLength(getHeaderFieldLong(httpURLConnection, "Content-Length"));
         onStart();
     }
 
@@ -641,7 +656,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
     @SuppressLint("NewApi")
     private void run(DownloadTask downloadTask) {
         this.mDownloadTask = downloadTask;
-        this.mTotals = mDownloadTask.getLength();
+        this.mTotals = mDownloadTask.getTotalsLength();
         mDownloadTimeOut = mDownloadTask.getDownloadTimeOut();
         mConnectTimeOut = mDownloadTask.getConnectTimeOut();
         if (downloadTask.getStatus() != STATUS_PAUSED) {

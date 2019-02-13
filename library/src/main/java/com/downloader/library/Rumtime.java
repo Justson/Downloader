@@ -24,6 +24,8 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.content.FileProvider;
 import android.text.TextUtils;
 import android.util.Log;
@@ -198,6 +200,20 @@ public class Rumtime {
         }
     }
 
+    public File uniqueFile(@NonNull DownloadTask downloadTask, @Nullable File targetDir) {
+        String md5 = Rumtime.getInstance().md5(downloadTask.getUrl());
+        File dir = (targetDir == null || !targetDir.isDirectory()) ? Rumtime.getInstance().getDir(downloadTask.getContext()) : targetDir;
+        File target = new File(dir, md5);
+        if (!target.exists()) {
+            target.mkdirs();
+        }
+        if (!target.isDirectory()) {
+            target.delete();
+            target.mkdirs();
+        }
+        return createFile(downloadTask.getContext(), downloadTask, target);
+    }
+
     public void setDownloadDir(File downloadDir) {
         mDownloadDir = downloadDir;
     }
@@ -252,7 +268,7 @@ public class Rumtime {
     }
 
     public Uri getUriFromFileForN(Context context, File file) {
-        Uri fileUri = FileProvider.getUriForFile(context, context.getPackageName() + ".AgentWebFileProvider", file);
+        Uri fileUri = FileProvider.getUriForFile(context, context.getPackageName() + ".DownloadFileProvider", file);
         return fileUri;
     }
 

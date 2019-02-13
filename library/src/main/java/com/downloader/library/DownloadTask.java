@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class DownloadTask extends Extra implements Serializable, Cloneable {
 
-    static final String TAG = DownloadTask.class.getSimpleName();
+    static final String TAG = Rumtime.PREFIX + DownloadTask.class.getSimpleName();
     int mId = Rumtime.getInstance().generateGlobalId();
     long mTotalsLength;
     Context mContext;
@@ -110,7 +110,7 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
 
     public long getUsedTime() {
         if (status.get() == STATUS_DOWNLOADING) {
-            return SystemClock.elapsedRealtime() - beginTime - detalTime;
+            return beginTime > 0L ? SystemClock.elapsedRealtime() - beginTime - detalTime : 0L;
         } else if (status.get() == STATUS_COMPLETED) {
             return endTime - beginTime - detalTime;
         } else {
@@ -162,7 +162,11 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
         return this;
     }
 
-    public long getLength() {
+    void setTotalsLength(long totalsLength) {
+        mTotalsLength = totalsLength;
+    }
+
+    public long getTotalsLength() {
         return mTotalsLength;
     }
 

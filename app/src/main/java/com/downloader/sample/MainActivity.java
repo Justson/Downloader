@@ -129,15 +129,16 @@ public class MainActivity extends AppCompatActivity {
                     Log.i(TAG, "onProgress:" + mProgress + " url:" + url + " Thread:" + Thread.currentThread().getName());
                     nativeDownloadViewHolder.mProgressBar.setProgress(mProgress);
                     nativeDownloadViewHolder.mCurrentProgress.setText("当前进度" + byte2FitMemorySize(downloaded) + "/" + byte2FitMemorySize(length) + " 耗时:" + ((downloadBean.getUsedTime()) / 1000) + "s");
-                    downloadBean.usedTime = usedTime;
                 }
 
                 @Override
                 public boolean onResult(Throwable throwable, Uri uri, String url, Extra extra) {
-                    Log.i(TAG, "onResult isSuccess:" + (throwable == null) + " url:" + url + " Thread:" + Thread.currentThread().getName());
+                    Log.i(TAG, "onResult isSuccess:" + (throwable == null) + " url:" + url + " Thread:" + Thread.currentThread().getName() + " uri:" + uri.toString());
+                    nativeDownloadViewHolder.mStatusButton.setEnabled(false);
                     if (throwable == null) {
                         nativeDownloadViewHolder.mStatusButton.setText("已完成");
-                        nativeDownloadViewHolder.mStatusButton.setEnabled(false);
+                    } else {
+                        nativeDownloadViewHolder.mStatusButton.setText("出错");
                     }
                     return super.onResult(throwable, uri, url, extra);
                 }
@@ -184,7 +185,6 @@ public class MainActivity extends AppCompatActivity {
     public static class DownloadBean extends DownloadTask {
         public String title;
         public String imageUrl;
-        public long usedTime;
 
         public DownloadBean(String title, String imageUrl, String url) {
             this.title = title;
