@@ -1,5 +1,7 @@
+apply plugin: 'com.novoda.bintray-release'
 apply plugin: 'com.android.library'
 
+apply plugin: 'maven-publish'
 android {
     compileSdkVersion COMPILE_SDK_VERSION.toInteger()
     buildToolsVersion BUILD_TOOL_VERSION
@@ -13,20 +15,58 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
     }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    lintOptions{
+        abortOnError false
+    }
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    testCompile 'junit:junit:4.12'
+    androidTestCompile('com.android.support.test.espresso:espresso-core:3.0.1', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compileOnly "com.android.support:appcompat-v7:${SUPPORT_LIB_VERSION}"
-    compileOnly "com.android.support:design:${SUPPORT_LIB_VERSION}"
     testCompile 'junit:junit:4.12'
+    provided "com.android.support:design:${SUPPORT_LIB_VERSION}"
+    provided "com.android.support:support-v4:${SUPPORT_LIB_VERSION}"
 }
+task javadoc(type: Javadoc) {
+    options.encoding = "utf-8"
+}
+publish {
+    def groupProjectID = 'com.download.library'
+    def artifactProjectID = 'download'
+    def publishVersionID = '4.0.3-alpha'
+
+    userOrg = 'just'
+    repoName = 'maven'
+    groupId = groupProjectID
+    artifactId = artifactProjectID
+    publishVersion = publishVersionID
+    desc = 'very easy to download you file'
+    website = 'https://github.com/Justson/Downloader'
+
+    publishing {
+        publications {
+            MyPub(MavenPublication) {
+                groupId groupProjectID
+                artifactId artifactProjectID
+                version publishVersionID
+
+                //don't forget to add bundleRelease
+//                artifact bundleRelease
+
+            }
+        }
+    }
+    publications = ['MyPub']
+}
+
