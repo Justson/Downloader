@@ -33,5 +33,5 @@ dependencies {
     testCompile 'junit:junit:4.12'
     implementation project(':library')
     implementation 'com.squareup.picasso:picasso:2.71828'
-//    compile 'com.download.library:download:4.0.3-alpha'
+//    compile 'com.download.library:download:4.0.3-alpha-2'
 }

@@ -44,7 +44,7 @@ task javadoc(type: Javadoc) {
 publish {
     def groupProjectID = 'com.download.library'
     def artifactProjectID = 'download'
-    def publishVersionID = '4.0.3-alpha'
+    def publishVersionID = '4.0.3-alpha-2'
 
     userOrg = 'just'
     repoName = 'maven'
@@ -62,7 +62,7 @@ publish {
                 version publishVersionID
 
                 //don't forget to add bundleRelease
-//                artifact bundleRelease
+                artifact bundleReleaseAar
 
             }
         }
