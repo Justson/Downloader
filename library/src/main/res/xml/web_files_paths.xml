@@ -2,6 +2,6 @@
 <paths>
     <cache-path
         name="download"
-        path="download">
+        path="download/public">
     </cache-path>
 </paths>

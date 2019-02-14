@@ -210,7 +210,7 @@ public class DownloadNotifier {
                 ignore.printStackTrace();
             }
         }
-        Intent mIntent = Rumtime.getInstance().getCommonFileIntentCompat(mContext, mDownloadTask.getFile());
+        Intent mIntent = Rumtime.getInstance().getCommonFileIntentCompat(mContext, mDownloadTask);
         setDelecte(null);
         if (null != mIntent) {
             if (!(mContext instanceof Activity)) {

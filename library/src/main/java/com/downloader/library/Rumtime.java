@@ -53,6 +53,7 @@ public class Rumtime {
     private static Pattern DISPOSITION_PATTERN = Pattern.compile(".*filename=(.*)");
     static final String PREFIX = "Download-";
     boolean DEBUG = true;
+    private String authority;
 
     public void setDebug(boolean debug) {
         this.DEBUG = debug;
@@ -128,7 +129,12 @@ public class Rumtime {
             if (fileName.contains("\"")) {
                 fileName = fileName.replace("\"", "");
             }
-            return createFileByName(dir, context, fileName, !extra.isBreakPointDownload());
+            String path = (dir == null || !dir.isDirectory()) ? getDir(context, extra.isEnableIndicator()).getPath() : dir.getAbsolutePath();
+            File pathFile = new File(path);
+            if (!pathFile.exists()) {
+                pathFile.mkdirs();
+            }
+            return createFileByName(pathFile, context, fileName, !extra.isBreakPointDownload());
         } catch (Throwable e) {
             e.printStackTrace();
         }
@@ -153,9 +159,8 @@ public class Rumtime {
         return info != null && info.isConnected();
     }
 
-    public File createFileByName(File dir, Context context, String name, boolean cover) throws IOException {
-        String path = (dir == null || !dir.isDirectory()) ? getDir(context).getPath() : dir.getAbsolutePath();
-        if (TextUtils.isEmpty(path)) {
+    File createFileByName(File path, Context context, String name, boolean cover) throws IOException {
+        if (!path.isDirectory()) {
             return null;
         }
         File mFile = new File(path, name);
@@ -182,16 +187,25 @@ public class Rumtime {
         }
     }
 
-    public File getDir(Context context) {
-        if (mDownloadDir == null) {
-            File file = context.getCacheDir();
-            file = new File(file.getAbsolutePath(), "download");
-            if (!file.exists()) {
-                file.mkdirs();
-            }
-            mDownloadDir = file;
+    public File getDir(Context context, boolean isPublic) {
+        File file = (mDownloadDir == null || !mDownloadDir.isDirectory()) ? context.getCacheDir() : mDownloadDir;
+        file = new File(file, "download" + File.separator + (isPublic ? "public" : "privite"));
+        if (!file.exists()) {
+            file.mkdirs();
         }
-        return mDownloadDir;
+        return file;
+    }
+
+    public File getDir(Context context) {
+        return getDir(context, false);
+    }
+
+    public File getDefaultDir(Context context) {
+        File file = new File(context.getCacheDir(), "download");
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+        return file;
     }
 
     public void log(String tag, String msg) {
@@ -202,7 +216,7 @@ public class Rumtime {
 
     public File uniqueFile(@NonNull DownloadTask downloadTask, @Nullable File targetDir) {
         String md5 = Rumtime.getInstance().md5(downloadTask.getUrl());
-        File dir = (targetDir == null || !targetDir.isDirectory()) ? Rumtime.getInstance().getDir(downloadTask.getContext()) : targetDir;
+        File dir = (targetDir == null || !targetDir.isDirectory()) ? Rumtime.getInstance().getDir(downloadTask.getContext(), downloadTask.isEnableIndicator()) : targetDir;
         File target = new File(dir, md5);
         if (!target.exists()) {
             target.mkdirs();
@@ -214,8 +228,9 @@ public class Rumtime {
         return createFile(downloadTask.getContext(), downloadTask, target);
     }
 
-    public void setDownloadDir(File downloadDir) {
+    public void setDownloadDir(File downloadDir, String authority) {
         mDownloadDir = downloadDir;
+        this.authority = authority;
     }
 
     public void logError(String tag, String msg) {
@@ -251,16 +266,20 @@ public class Rumtime {
         return applicationName;
     }
 
-    public Intent getCommonFileIntentCompat(Context context, File file) {
+    public Intent getCommonFileIntentCompat(Context context, DownloadTask downloadTask) {
         Intent mIntent = new Intent().setAction(Intent.ACTION_VIEW);
-        setIntentDataAndType(context, mIntent, getMIMEType(file), file, false);
+        setIntentDataAndType(context, mIntent, getMIMEType(downloadTask.getFile()), downloadTask.getFile(), false, downloadTask.isCustomFile() ? downloadTask.getAuthority() : getAuthority(downloadTask.getContext()));
         return mIntent;
     }
 
-    public Uri getUriFromFile(Context context, File file) {
+    private String getAuthority(Context context) {
+        return TextUtils.isEmpty(this.authority) ? (this.authority = context.getPackageName() + ".DownloadFileProvider") : this.authority;
+    }
+
+    public Uri getUriFromFile(Context context, File file, String authority) {
         Uri uri = null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            uri = getUriFromFileForN(context, file);
+            uri = FileProvider.getUriForFile(context, authority, file); //getUriFromFileForN(context, file);
         } else {
             uri = Uri.fromFile(file);
         }
@@ -277,9 +296,9 @@ public class Rumtime {
                                      Intent intent,
                                      String type,
                                      File file,
-                                     boolean writeAble) {
+                                     boolean writeAble, String authority) {
         if (Build.VERSION.SDK_INT >= 24) {
-            intent.setDataAndType(getUriFromFile(context, file), type);
+            intent.setDataAndType(getUriFromFile(context, file, authority), type);
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             if (writeAble) {
                 intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);

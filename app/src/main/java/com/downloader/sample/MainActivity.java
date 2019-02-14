@@ -124,6 +124,11 @@ public class MainActivity extends AppCompatActivity {
             });
             downloadBean.setDownloadListener(new SimpleDownloadListener() {
                 @Override
+                public boolean onStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength, Extra extra) {
+                    return super.onStart(url, userAgent, contentDisposition, mimetype, contentLength, extra);
+                }
+
+                @Override
                 public void onProgress(String url, long downloaded, long length, long usedTime) {
                     int mProgress = (int) ((downloaded) / Float.valueOf(length) * 100);
                     Log.i(TAG, "onProgress:" + mProgress + " url:" + url + " Thread:" + Thread.currentThread().getName());
@@ -251,6 +256,7 @@ public class MainActivity extends AppCompatActivity {
 
         downloadBean = new DownloadBean("头条", "http://p15.qhimg.com/dr/72__/t013d31024ae54d9c35.png", "http://shouji.360tpcdn.com/170918/93d1695d87df5a0c0002058afc0361f1/com.ss.android.article.news_636.apk");
         downloadBean.setContext(this.getApplicationContext());
+        downloadBean.setEnableIndicator(false);
         mDownloadTasks.add(downloadBean);
 
         downloadBean = new DownloadBean("淘宝", "http://p15.qhimg.com/dr/72__/t011cd515c7c9390202.png", "http://shouji.360tpcdn.com/170901/ec1eaad9d0108b30d8bd602da9954bb7/com.taobao.taobao_161.apk");

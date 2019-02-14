@@ -184,6 +184,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
         if (null == downloadTask.getFile() || !downloadTask.getFile().exists()) {
             File file = Rumtime.getInstance().uniqueFile(downloadTask, null);
             downloadTask.setFile(file);
+            Rumtime.getInstance().log(TAG, " file path:" + file.getAbsolutePath() + " downloadTask en:" + downloadTask.isEnableIndicator());
         }
         downloadTask.setStatus(DownloadTask.STATUS_DOWNLOADING);
         createNotifier();
@@ -509,7 +510,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
             if (!downloadTask.isAutoOpen()) {
                 return;
             }
-            Intent mIntent = Rumtime.getInstance().getCommonFileIntentCompat(downloadTask.getContext(), downloadTask.getFile());
+            Intent mIntent = Rumtime.getInstance().getCommonFileIntentCompat(downloadTask.getContext(), downloadTask);
             if (null == mIntent) {
                 return;
             }
@@ -555,6 +556,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
     private void createNotifier() {
         DownloadTask downloadTask = this.mDownloadTask;
         Context mContext = downloadTask.getContext().getApplicationContext();
+        Rumtime.getInstance().log(TAG, " downloadTask.isEnableIndicator()):" + downloadTask.isEnableIndicator());
         if (null != mContext && downloadTask.isEnableIndicator()) {
             mDownloadNotifier = new DownloadNotifier(mContext, downloadTask.getId());
             mDownloadNotifier.initBuilder(downloadTask);

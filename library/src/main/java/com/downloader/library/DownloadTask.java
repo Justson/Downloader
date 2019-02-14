@@ -20,6 +20,8 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.SystemClock;
 import android.support.annotation.IntDef;
+import android.support.annotation.NonNull;
+import android.text.TextUtils;
 
 import java.io.File;
 import java.io.Serializable;
@@ -37,6 +39,7 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
     Context mContext;
     File mFile;
     DownloadListener mDownloadListener;
+    String authority = "";
     public static final int STATUS_NEW = 1000;
     public static final int STATUS_PENDDING = 1001;
     public static final int STATUS_DOWNLOADING = 1002;
@@ -46,6 +49,7 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
     long pauseTime = 0L;
     long endTime = 0L;
     long detalTime = 0L;
+    boolean isCustomFile = false;
 
     @IntDef({STATUS_NEW, STATUS_PENDDING, STATUS_DOWNLOADING, STATUS_PAUSED, STATUS_COMPLETED})
     @interface DownloadTaskStatus {
@@ -85,6 +89,18 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
         return this;
     }
 
+
+    @Override
+    public DownloadTask setEnableIndicator(boolean enableIndicator) {
+        if (enableIndicator && mFile != null && TextUtils.isEmpty(authority)) {
+            Rumtime.getInstance().logError(TAG, " Custom file path, you must specify authority, otherwise the notification should not be turned on");
+            super.setEnableIndicator(false);
+        } else {
+            super.setEnableIndicator(enableIndicator);
+        }
+        return this;
+    }
+
     public File getFile() {
         return mFile;
     }
@@ -93,8 +109,33 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
         return Uri.fromFile(this.mFile);
     }
 
-    public DownloadTask setFile(File file) {
+    String getAuthority() {
+        return authority;
+    }
+
+    public DownloadTask setFile(@NonNull File file) {
         mFile = file;
+        this.authority = "";
+        checkCustomFilePath(file);
+        return this;
+    }
+
+    private void checkCustomFilePath(File file) {
+        if (file.getAbsolutePath().startsWith(Rumtime.getInstance().getDefaultDir(this.getContext()).getAbsolutePath())) {
+            isCustomFile = false;
+        } else {
+            setEnableIndicator(false);
+            isCustomFile = true;
+        }
+    }
+
+    boolean isCustomFile() {
+        return isCustomFile;
+    }
+
+    public DownloadTask setFile(@NonNull File file, @NonNull String authority) {
+        setFile(file);
+        this.authority = authority;
         return this;
     }
 
