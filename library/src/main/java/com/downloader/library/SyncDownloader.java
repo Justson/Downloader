@@ -30,62 +30,72 @@ import java.util.concurrent.CountDownLatch;
  */
 public class SyncDownloader extends Downloader implements Callable<File> {
 
-    private static final Handler HANDLER = new Handler(Looper.getMainLooper());
-    private volatile boolean mEnqueue;
+	private static final Handler HANDLER = new Handler(Looper.getMainLooper());
+	private volatile boolean mEnqueue;
 
-    SyncDownloader(DownloadTask downloadTask) {
-        super();
-        if (Looper.myLooper() == Looper.getMainLooper()) {
-            throw new UnsupportedOperationException("Sync download must call it in the non main-Thread  ");
-        }
-        mDownloadTask = downloadTask;
-    }
+	SyncDownloader(DownloadTask downloadTask) {
+		super();
+		if (Looper.myLooper() == Looper.getMainLooper()) {
+			throw new UnsupportedOperationException("Sync download must call it in the non main-Thread  ");
+		}
+		mDownloadTask = downloadTask;
+	}
 
-    @Override
-    protected void onPreExecute() {
-        super.onPreExecute();
-    }
+	@Override
+	protected void onPreExecute() {
+		try {
+			super.onPreExecute();
+		} catch (Throwable throwable) {
+			synchronized (this) {
+				notify();
+			}
+			throw throwable;
+		}
+	}
 
-    @Override
-    protected void onPostExecute(Integer integer) {
-        super.onPostExecute(integer);
-        synchronized (this) {
-            notify();
-        }
-    }
+	@Override
+	protected void onPostExecute(Integer integer) {
+		try {
+			super.onPostExecute(integer);
+		} finally {
+			synchronized (this) {
+				notify();
+			}
+		}
+	}
 
-    @Override
-    protected void destroyTask() {
-    }
+	@Override
+	protected void destroyTask() {
+	}
 
-    @Override
-    public DownloadTask cancelDownload() {
-        super.cancelDownload();
-        return null;
-    }
+	@Override
+	public DownloadTask cancelDownload() {
+		super.cancelDownload();
+		return null;
+	}
 
-    @Override
-    public File call() throws Exception {
-        synchronized (this) {
-            final CountDownLatch syncLatch = new CountDownLatch(1);
-            HANDLER.post(new Runnable() {
-                @Override
-                public void run() {
-                    mEnqueue = download(mDownloadTask);
-                    syncLatch.countDown();
-                }
-            });
-            syncLatch.await();
-            if (!mEnqueue) {
-                throw new RuntimeException("download task already exist!");
-            }
-            wait();
-        }
-        if (null != mThrowable) {
-            throw (RuntimeException) mThrowable;
-        }
-        return mDownloadTask.mFile;
-    }
+	@Override
+	public File call() throws Exception {
+		synchronized (this) {
+			final CountDownLatch syncLatch = new CountDownLatch(1);
+			HANDLER.post(new Runnable() {
+				@Override
+				public void run() {
+					mEnqueue = download(mDownloadTask);
+					syncLatch.countDown();
+				}
+			});
+			syncLatch.await();
+			if (!mEnqueue) {
+				throw new RuntimeException("download task already exist!");
+			}
+			wait();
+		}
+		if (null != mThrowable) {
+			throw (RuntimeException) mThrowable;
+		}
+		return mDownloadTask.mFile;
+	}
 
 
 }
