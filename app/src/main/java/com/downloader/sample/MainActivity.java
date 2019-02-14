@@ -1,5 +1,6 @@
 package com.downloader.sample;
 
+import android.app.DownloadManager;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -73,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
         DownloadImpl.getInstance()
                 .with(getApplicationContext())
                 .target(this.getCacheDir())
+                .setEnableIndicator(true)
                 .url("http://shouji.360tpcdn.com/170918/f7aa8587561e4031553316ada312ab38/com.tencent.qqlive_13049.apk")
                 .enqueue(new SimpleDownloadListener() {
                     @Override
@@ -111,6 +113,8 @@ public class MainActivity extends AppCompatActivity {
                         return super.onResult(throwable, path, url, extra);
                     }
                 });
+
+
     }
 
     private class NativeDownloadAdapter extends RecyclerView.Adapter<NativeDownloadViewHolder> {

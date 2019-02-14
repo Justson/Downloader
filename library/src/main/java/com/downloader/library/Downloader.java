@@ -393,16 +393,20 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
         if (TextUtils.isEmpty(etag)) {
             return;
         }
+        String url = mDownloadTask.getUrl();
+        String urlMD5 = Rumtime.getInstance().md5(url);
         Rumtime.getInstance().log(TAG, "save etag:" + etag);
         SharedPreferences mSharedPreferences = mDownloadTask.getContext().getSharedPreferences(Rumtime.getInstance().getIdentify(), Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = mSharedPreferences.edit();
-        editor.putString(mDownloadTask.getFile().getName(), etag);
+        editor.putString(urlMD5, etag);
         editor.apply();
     }
 
     private String getEtag() {
+        String url = mDownloadTask.getUrl();
+        String urlMD5 = Rumtime.getInstance().md5(url);
         SharedPreferences mSharedPreferences = mDownloadTask.getContext().getSharedPreferences(Rumtime.getInstance().getIdentify(), Context.MODE_PRIVATE);
-        String mEtag = mSharedPreferences.getString(mDownloadTask.getFile().getName(), "-1");
+        String mEtag = mSharedPreferences.getString(urlMD5, "-1");
         if (!TextUtils.isEmpty(mEtag) && !"-1".equals(mEtag)) {
             return mEtag;
         } else {
