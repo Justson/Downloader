@@ -181,10 +181,14 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
         if (null == downloadTask) {
             throw new NullPointerException("DownloadTask can't be null ");
         }
-        if (null == downloadTask.getFile() || !downloadTask.getFile().exists()) {
+        if (null == downloadTask.getFile()) {
             File file = Rumtime.getInstance().uniqueFile(downloadTask, null);
             downloadTask.setFile(file);
-            Rumtime.getInstance().log(TAG, " file path:" + file.getAbsolutePath() + " downloadTask en:" + downloadTask.isEnableIndicator());
+            Rumtime.getInstance().log(TAG, " file path:" + file.getAbsolutePath() + " isEnableIndicator:" + downloadTask.isEnableIndicator());
+        } else if (downloadTask.getFile().isDirectory()) {
+            File file = Rumtime.getInstance().uniqueFile(downloadTask, downloadTask.getFile());
+            downloadTask.setFile(file);
+            Rumtime.getInstance().log(TAG, "uniqueFile");
         }
         downloadTask.setStatus(DownloadTask.STATUS_DOWNLOADING);
         createNotifier();
@@ -195,7 +199,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 
     private boolean checkSpace() {
         DownloadTask downloadTask = this.mDownloadTask;
-        if (downloadTask.getTotalsLength() - downloadTask.getFile().length() > (getAvailableStorage() - 100 * 1024 * 1024)) {
+        if (downloadTask.getTotalsLength() - downloadTask.getFile().length() > (getAvailableStorage() - (100 * 1024 * 1024))) {
             Rumtime.getInstance().logError(TAG, " 空间不足");
             return false;
         }

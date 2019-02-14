@@ -31,6 +31,8 @@ import com.downloader.library.Extra;
 import com.downloader.library.SimpleDownloadListener;
 import com.squareup.picasso.Picasso;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Locale;
 
@@ -68,8 +70,9 @@ public class MainActivity extends AppCompatActivity {
                 Log.i(TAG, " download success:" + ((File) file).length());
             }
         }).start();*/
-       /* DownloadImpl.getInstance()
+        DownloadImpl.getInstance()
                 .with(getApplicationContext())
+                .target(this.getCacheDir())
                 .url("http://shouji.360tpcdn.com/170918/f7aa8587561e4031553316ada312ab38/com.tencent.qqlive_13049.apk")
                 .enqueue(new SimpleDownloadListener() {
                     @Override
@@ -77,7 +80,37 @@ public class MainActivity extends AppCompatActivity {
                         super.onProgress(url, downloaded, length, usedTime);
                         Log.i(TAG, " progress:" + downloaded + " url:" + url);
                     }
-                });*/
+
+                    @Override
+                    public boolean onResult(Throwable throwable, Uri path, String url, Extra extra) {
+                        Log.i(TAG, " path:" + path + " url:" + url + " length:" + new File(path.getPath()).length());
+                        return super.onResult(throwable, path, url, extra);
+                    }
+                });
+
+        File file = new File(this.getCacheDir(), "测试.apk");
+        try {
+            file.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        DownloadImpl.getInstance()
+                .with(getApplicationContext())
+                .target(file)
+                .url("http://shouji.360tpcdn.com/170918/93d1695d87df5a0c0002058afc0361f1/com.ss.android.article.news_636.apk")
+                .enqueue(new SimpleDownloadListener() {
+                    @Override
+                    public void onProgress(String url, long downloaded, long length, long usedTime) {
+                        super.onProgress(url, downloaded, length, usedTime);
+                        Log.i(TAG, " progress:" + downloaded + " url:" + url);
+                    }
+
+                    @Override
+                    public boolean onResult(Throwable throwable, Uri path, String url, Extra extra) {
+                        Log.i(TAG, " path:" + path + " url:" + url + " length:" + new File(path.getPath()).length());
+                        return super.onResult(throwable, path, url, extra);
+                    }
+                });
     }
 
     private class NativeDownloadAdapter extends RecyclerView.Adapter<NativeDownloadViewHolder> {

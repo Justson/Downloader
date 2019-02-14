@@ -48,6 +48,11 @@ public class ResourceRequest<T extends DownloadTask> {
         return this;
     }
 
+    public ResourceRequest target(@NonNull File target, @NonNull String authority) {
+        mDownloadTask.setFile(target, authority);
+        return this;
+    }
+
     protected ResourceRequest setContentLength(long contentLength) {
         mDownloadTask.mContentLength = contentLength;
         return this;
