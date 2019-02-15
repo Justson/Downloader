@@ -123,6 +123,9 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
     private void checkCustomFilePath(File file) {
         if (file == null || file.getAbsolutePath().startsWith(Rumtime.getInstance().getDefaultDir(this.getContext()).getAbsolutePath())) {
             isCustomFile = false;
+        } else if (!TextUtils.isEmpty(this.authority)) {
+            setEnableIndicator(true);
+            isCustomFile = true;
         } else {
             setEnableIndicator(false);
             isCustomFile = true;
@@ -134,8 +137,9 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
     }
 
     public DownloadTask setFile(@NonNull File file, @NonNull String authority) {
-        setFile(file);
+        this.mFile = file;
         this.authority = authority;
+        checkCustomFilePath(file);
         return this;
     }
 

@@ -1,6 +1,5 @@
 package com.downloader.sample;
 
-import android.app.DownloadManager;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -32,8 +31,6 @@ import com.downloader.library.Extra;
 import com.downloader.library.SimpleDownloadListener;
 import com.squareup.picasso.Picasso;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Locale;
 
@@ -71,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.i(TAG, " download success:" + ((File) file).length());
             }
         }).start();*/
-        DownloadImpl.getInstance()
+        /*DownloadImpl.getInstance()
                 .with(getApplicationContext())
                 .target(this.getCacheDir())
                 .setEnableIndicator(true)
@@ -112,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
                         Log.i(TAG, " path:" + path + " url:" + url + " length:" + new File(path.getPath()).length());
                         return super.onResult(throwable, path, url, extra);
                     }
-                });
+                });*/
 
 
     }

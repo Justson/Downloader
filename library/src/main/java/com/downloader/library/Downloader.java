@@ -564,7 +564,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
     private void createNotifier() {
         DownloadTask downloadTask = this.mDownloadTask;
         Context mContext = downloadTask.getContext().getApplicationContext();
-        Rumtime.getInstance().log(TAG, " downloadTask.isEnableIndicator()):" + downloadTask.isEnableIndicator());
+        Rumtime.getInstance().log(TAG, " downloadTask.isEnableIndicator()):" + downloadTask.isEnableIndicator() + " file:" + downloadTask.getFile().getAbsolutePath());
         if (null != mContext && downloadTask.isEnableIndicator()) {
             mDownloadNotifier = new DownloadNotifier(mContext, downloadTask.getId());
             mDownloadNotifier.initBuilder(downloadTask);
