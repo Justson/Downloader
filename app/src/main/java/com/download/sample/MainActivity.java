@@ -54,7 +54,6 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
         mRecyclerView.setAdapter(new NativeDownloadAdapter());
-
         /*new Thread(new Runnable() {
             @Override
             public void run() {
@@ -109,7 +108,6 @@ public class MainActivity extends AppCompatActivity {
                         return super.onResult(throwable, path, url, extra);
                     }
                 });*/
-
 
     }
 
