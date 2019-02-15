@@ -1,6 +1,6 @@
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.downloader.library"
+    package="com.download.library"
     >
     <uses-permission android:name="android.permission.INTERNET">
     </uses-permission>
@@ -15,7 +15,7 @@
         android:supportsRtl="true"
         >
         <provider
-            android:name=".DownloadFileProvider"
+            android:name="com.download.library.DownloadFileProvider"
             android:authorities="${applicationId}.DownloadFileProvider"
             android:exported="false"
             android:grantUriPermissions="true">
@@ -24,7 +24,7 @@
                 android:resource="@xml/download_files_public"/>
         </provider>
         <receiver
-            android:name=".NotificationCancelReceiver"
+            android:name="com.download.library.NotificationCancelReceiver"
             android:exported="false">
         </receiver>
     </application>
