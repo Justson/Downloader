@@ -31,6 +31,8 @@ import com.downloader.library.Extra;
 import com.downloader.library.SimpleDownloadListener;
 import com.squareup.picasso.Picasso;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Locale;
 
@@ -70,7 +72,6 @@ public class MainActivity extends AppCompatActivity {
         }).start();*/
         /*DownloadImpl.getInstance()
                 .with(getApplicationContext())
-                .target(this.getCacheDir())
                 .setEnableIndicator(true)
                 .url("http://shouji.360tpcdn.com/170918/f7aa8587561e4031553316ada312ab38/com.tencent.qqlive_13049.apk")
                 .enqueue(new SimpleDownloadListener() {
