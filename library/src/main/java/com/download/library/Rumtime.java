@@ -53,6 +53,8 @@ public class Rumtime {
 	static final String PREFIX = "Download-";
 	boolean DEBUG = true;
 	private String authority;
+	private StorageEngine mStorageEngine;
+	private StorageEngine.StorageEngineFactory mStorageEngineFactory;
 
 	public void setDebug(boolean debug) {
 		this.DEBUG = debug;
@@ -69,6 +71,27 @@ public class Rumtime {
 
 	public static Rumtime getInstance() {
 		return sInstance;
+	}
+
+	public StorageEngine getStorageEngine(Context context) {
+		StorageEngine storageEngine = this.mStorageEngine;
+		if (null == storageEngine) {
+			storageEngine = this.mStorageEngine = this.mStorageEngineFactory.newStoraEngine(context);
+		}
+		return storageEngine;
+	}
+
+	public StorageEngine.StorageEngineFactory getStorageEngineFactory() {
+		StorageEngine.StorageEngineFactory storageEngineFactory = this.mStorageEngineFactory;
+		if (null == mStorageEngineFactory) {
+			storageEngineFactory = this.mStorageEngineFactory = new DefaultStorageEngine.DefaultStorageEngineFactory();
+		}
+		return storageEngineFactory;
+	}
+
+	public void setStorageEngineFactory(StorageEngine.StorageEngineFactory storageEngineFactory) {
+		mStorageEngineFactory = storageEngineFactory;
+		this.mStorageEngine = null;
 	}
 
 	public DownloadTask getDefaultDownloadTask() {

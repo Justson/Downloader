@@ -20,7 +20,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
@@ -407,17 +406,14 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 		String url = mDownloadTask.getUrl();
 		String urlMD5 = Rumtime.getInstance().md5(url);
 		Rumtime.getInstance().log(TAG, "save etag:" + etag);
-		SharedPreferences mSharedPreferences = mDownloadTask.getContext().getSharedPreferences(Rumtime.getInstance().getIdentify(), Context.MODE_PRIVATE);
-		SharedPreferences.Editor editor = mSharedPreferences.edit();
-		editor.putString(urlMD5, etag);
-		editor.apply();
+		StorageEngine storageEngine = Rumtime.getInstance().getStorageEngine(mDownloadTask.mContext);
+		storageEngine.save(urlMD5, etag);
 	}
 
 	private String getEtag() {
 		String url = mDownloadTask.getUrl();
 		String urlMD5 = Rumtime.getInstance().md5(url);
-		SharedPreferences mSharedPreferences = mDownloadTask.getContext().getSharedPreferences(Rumtime.getInstance().getIdentify(), Context.MODE_PRIVATE);
-		String mEtag = mSharedPreferences.getString(urlMD5, "-1");
+		String mEtag = Rumtime.getInstance().getStorageEngine(mDownloadTask.mContext).get(urlMD5, "-1");
 		if (!TextUtils.isEmpty(mEtag) && !"-1".equals(mEtag)) {
 			return mEtag;
 		} else {
