@@ -76,12 +76,12 @@ public class Rumtime {
 	public StorageEngine getStorageEngine(Context context) {
 		StorageEngine storageEngine = this.mStorageEngine;
 		if (null == storageEngine) {
-			storageEngine = this.mStorageEngine = this.mStorageEngineFactory.newStoraEngine(context);
+			storageEngine = this.mStorageEngine = getStorageEngineFactory().newStoraEngine(context);
 		}
 		return storageEngine;
 	}
 
-	public StorageEngine.StorageEngineFactory getStorageEngineFactory() {
+	StorageEngine.StorageEngineFactory getStorageEngineFactory() {
 		StorageEngine.StorageEngineFactory storageEngineFactory = this.mStorageEngineFactory;
 		if (null == mStorageEngineFactory) {
 			storageEngineFactory = this.mStorageEngineFactory = new DefaultStorageEngine.DefaultStorageEngineFactory();

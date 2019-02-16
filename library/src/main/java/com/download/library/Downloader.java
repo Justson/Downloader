@@ -25,6 +25,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Process;
 import android.os.StatFs;
 import android.os.SystemClock;
 import android.text.TextUtils;
@@ -235,6 +236,8 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 	protected Integer doInBackground(Void... params) {
 		int result = ERROR_LOAD;
 		String name = Thread.currentThread().getName();
+		int p = Thread.currentThread().getPriority();
+		Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO);
 		Thread.currentThread().setName("pool-agentweb-thread-" + Rumtime.getInstance().generateGlobalThreadId());
 		try {
 			this.mBeginTime = SystemClock.elapsedRealtime();
@@ -457,7 +460,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 		DownloadTask downloadTask = this.mDownloadTask;
 		try {
 			long currentTime = SystemClock.elapsedRealtime();
-			Rumtime.getInstance().log(TAG, " currentTime:" + currentTime);
+//			Rumtime.getInstance().log(TAG, " currentTime:" + currentTime);
 			this.mUsedTime = currentTime - this.mBeginTime;
 			if (mUsedTime == 0) {
 				this.mAverageSpeed = 0;

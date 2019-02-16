@@ -10,6 +10,7 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -26,11 +27,15 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.download.library.DownloadImpl;
+import com.download.library.DownloadListenerAdapter;
 import com.download.library.DownloadTask;
 import com.download.library.Extra;
-import com.download.library.DownloadListenerAdapter;
+import com.liulishuo.filedownloader.BaseDownloadTask;
+import com.liulishuo.filedownloader.FileDownloadListener;
+import com.liulishuo.filedownloader.FileDownloader;
 import com.squareup.picasso.Picasso;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Locale;
 
@@ -54,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
 		mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 		mRecyclerView.setItemAnimator(new DefaultItemAnimator());
 		mRecyclerView.setAdapter(new NativeDownloadAdapter());
+		FileDownloader.setup(this.getApplicationContext());
         /*new Thread(new Runnable() {
             @Override
             public void run() {
@@ -116,6 +122,71 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });*/
 
+        run2();
+	}
+
+	private void run3() {
+		final long begin1 = SystemClock.elapsedRealtime();
+		FileDownloader.getImpl()
+				.create("http://shouji.360tpcdn.com/170918/93d1695d87df5a0c0002058afc0361f1/com.ss.android.article.news_636.apk")
+				.setPath(this.getCacheDir().getAbsolutePath() + "/" + "test.apk")
+				.setListener(new FileDownloadListener() {
+					@Override
+					protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+
+					}
+
+					@Override
+					protected void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+						Log.i(TAG, "FileDownloader progress:" + soFarBytes);
+					}
+
+					@Override
+					protected void completed(BaseDownloadTask task) {
+						Log.i(TAG, " FileDownloader time:" + (SystemClock.elapsedRealtime() - begin1)
+								+ " length:" + new File(task.getPath()).length()
+								+ "  path:" + task.getPath());
+						new File(task.getPath()).delete();
+//						run2();
+					}
+
+					@Override
+					protected void paused(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+
+					}
+
+					@Override
+					protected void error(BaseDownloadTask task, Throwable e) {
+						e.printStackTrace();
+					}
+
+					@Override
+					protected void warn(BaseDownloadTask task) {
+
+					}
+				}).start();
+	}
+
+	private void run2() {
+		final long begin = SystemClock.elapsedRealtime();
+		DownloadImpl.getInstance()
+				.with(getApplicationContext())
+				.url("http://shouji.360tpcdn.com/170918/93d1695d87df5a0c0002058afc0361f1/com.ss.android.article.news_636.apk")
+				.enqueue(new DownloadListenerAdapter() {
+					@Override
+					public void onProgress(String url, long downloaded, long length, long usedTime) {
+						super.onProgress(url, downloaded, length, usedTime);
+						Log.i(TAG, " progress:" + downloaded + " url:" + url);
+					}
+
+					@Override
+					public boolean onResult(Throwable throwable, Uri path, String url, Extra extra) {
+						Log.i(TAG, " path:" + path + " url:" + url + " length:" + new File(path.getPath()).length());
+						Log.i(TAG, " DownloadImpl time:" + (SystemClock.elapsedRealtime() - begin) + " length:" + new File(path.getPath()).length());
+						run3();
+						return super.onResult(throwable, path, url, extra);
+					}
+				});
 	}
 
 	private class NativeDownloadAdapter extends RecyclerView.Adapter<NativeDownloadViewHolder> {

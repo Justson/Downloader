@@ -4,7 +4,7 @@ android {
     compileSdkVersion COMPILE_SDK_VERSION.toInteger()
     buildToolsVersion BUILD_TOOL_VERSION
     defaultConfig {
-        applicationId "com.downloader.sample"
+        applicationId "com.download.sample"
         minSdkVersion 16
         targetSdkVersion TARGET_SDK_VERSION.toInteger()
         versionCode 4
@@ -32,6 +32,7 @@ dependencies {
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     testCompile 'junit:junit:4.12'
     implementation project(':library')
+    implementation 'com.liulishuo.filedownloader:library:1.7.4'
 //    compile 'com.download.library:download:4.0.3-alpha-2'
 //    implementation 'com.github.Justson:Downloader:4.0.3-alpha'
     implementation 'com.squareup.picasso:picasso:2.71828'

@@ -28,139 +28,139 @@ import java.util.Map;
  */
 public class Extra implements Serializable, Cloneable {
 
-    /**
-     * 强制下载
-     */
-    protected boolean mIsForceDownload = true;
-    /**
-     * 显示系统通知
-     */
-    protected boolean mEnableIndicator = true;
-    /**
-     * 通知icon
-     */
-    @DrawableRes
-    protected int mIcon = R.drawable.ic_file_download_black_24dp;
-    /**
-     * 并行下载
-     */
-    protected boolean mIsParallelDownload = true;
-    /**
-     * 断点续传，分块传输该字段无效
-     */
-    protected boolean mIsBreakPointDownload = true;
-    /**
-     * 当前下载链接
-     */
-    protected String mUrl;
-    /**
-     * mContentDisposition ，提取文件名 ，如果ContentDisposition不指定文件名，则从url中提取文件名
-     */
-    protected String mContentDisposition;
-    /**
-     * 文件大小
-     */
-    protected long mContentLength;
-    /**
-     * 文件类型
-     */
-    protected String mMimetype;
-    /**
-     * UA
-     */
-    protected String mUserAgent;
-    /**
-     * Header
-     */
-    protected Map<String, String> mHeaders;
-    /**
-     * 下载文件完成，是否自动打开该文件
-     */
-    protected boolean mAutoOpen = false;
-    /**
-     * 超时时长默认为两小时
-     */
-    protected long downloadTimeOut = Long.MAX_VALUE;
-    /**
-     * 连接超时， 默认10s
-     */
-    protected int connectTimeOut = 10 * 1000;
-    /**
-     * 以8KB位单位，默认60s ，如果60s内无法从网络流中读满8KB数据，则抛出异常 。
-     */
-    protected int blockMaxTime = 10 * 60 * 1000;
+	/**
+	 * 强制下载
+	 */
+	protected boolean mIsForceDownload = false;
+	/**
+	 * 显示系统通知
+	 */
+	protected boolean mEnableIndicator = true;
+	/**
+	 * 通知icon
+	 */
+	@DrawableRes
+	protected int mIcon = R.drawable.ic_file_download_black_24dp;
+	/**
+	 * 并行下载
+	 */
+	protected boolean mIsParallelDownload = true;
+	/**
+	 * 断点续传，分块传输该字段无效
+	 */
+	protected boolean mIsBreakPointDownload = true;
+	/**
+	 * 当前下载链接
+	 */
+	protected String mUrl;
+	/**
+	 * ContentDisposition ，提取文件名 ，如果ContentDisposition不指定文件名，则从url中提取文件名
+	 */
+	protected String mContentDisposition;
+	/**
+	 * 文件大小
+	 */
+	protected long mContentLength;
+	/**
+	 * 文件类型
+	 */
+	protected String mMimetype;
+	/**
+	 * UA
+	 */
+	protected String mUserAgent;
+	/**
+	 * Header
+	 */
+	protected Map<String, String> mHeaders;
+	/**
+	 * 下载文件完成，是否自动打开该文件
+	 */
+	protected boolean mAutoOpen = false;
+	/**
+	 * 超时时长默认为两小时
+	 */
+	protected long downloadTimeOut = Long.MAX_VALUE;
+	/**
+	 * 连接超时， 默认10s
+	 */
+	protected int connectTimeOut = 10 * 1000;
+	/**
+	 * 以8KB位单位，默认60s ，如果60s内无法从网络流中读满8KB数据，则抛出异常 。
+	 */
+	protected int blockMaxTime = 10 * 60 * 1000;
 
-    public Map<String, String> getHeaders() {
-        return mHeaders;
-    }
+	public Map<String, String> getHeaders() {
+		return mHeaders;
+	}
 
-    protected Extra() {
+	protected Extra() {
 
-    }
+	}
 
-    public int getBlockMaxTime() {
-        return blockMaxTime;
-    }
+	public int getBlockMaxTime() {
+		return blockMaxTime;
+	}
 
-    public String getUrl() {
-        return mUrl;
-    }
+	public String getUrl() {
+		return mUrl;
+	}
 
-    public String getUserAgent() {
-        return mUserAgent;
-    }
+	public String getUserAgent() {
+		return mUserAgent;
+	}
 
-    public String getContentDisposition() {
-        return mContentDisposition;
-    }
+	public String getContentDisposition() {
+		return mContentDisposition;
+	}
 
-    public String getMimetype() {
-        return mMimetype;
-    }
+	public String getMimetype() {
+		return mMimetype;
+	}
 
-    public long getContentLength() {
-        return mContentLength;
-    }
+	public long getContentLength() {
+		return mContentLength;
+	}
 
-    public boolean isForceDownload() {
-        return mIsForceDownload;
-    }
+	public boolean isForceDownload() {
+		return mIsForceDownload;
+	}
 
-    public boolean isEnableIndicator() {
-        return mEnableIndicator;
-    }
+	public boolean isEnableIndicator() {
+		return mEnableIndicator;
+	}
 
-    public long getDownloadTimeOut() {
-        return downloadTimeOut;
-    }
+	public long getDownloadTimeOut() {
+		return downloadTimeOut;
+	}
 
-    public int getConnectTimeOut() {
-        return connectTimeOut;
-    }
+	public int getConnectTimeOut() {
+		return connectTimeOut;
+	}
 
-    public int getIcon() {
-        return mIcon;
-    }
+	public int getIcon() {
+		return mIcon;
+	}
 
-    public boolean isParallelDownload() {
-        return mIsParallelDownload;
-    }
+	public boolean isParallelDownload() {
+		return mIsParallelDownload;
+	}
 
-    public boolean isBreakPointDownload() {
-        return mIsBreakPointDownload;
-    }
+	public boolean isBreakPointDownload() {
+		return mIsBreakPointDownload;
+	}
 
-    public boolean isAutoOpen() {
-        return mAutoOpen;
-    }
+	public boolean isAutoOpen() {
+		return mAutoOpen;
+	}
 
-    @Override
-    protected Object clone() {
-        try {
-            return super.clone();
-        } catch (CloneNotSupportedException e) {
-            e.printStackTrace();
-        }
-        return new Extra();
-    }
+	@Override
+	protected Object clone() {
+		try {
+			return super.clone();
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
+		}
+		return new Extra();
+	}
 }
