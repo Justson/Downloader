@@ -27,9 +27,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
- * ExecuteTasksMap 缓存当前所有 Downloader，
- * 如果用户滑动通知取消下载，通知相应 Downloader 取消下载。
- *
  * @author cenxiaozhong
  * @date 2018/2/12
  */

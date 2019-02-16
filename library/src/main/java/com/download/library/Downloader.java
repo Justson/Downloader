@@ -681,7 +681,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 				Annotation annotation = mDownloadTask.getDownloadingListener().getClass().getDeclaredMethod("onProgress", String.class, long.class, long.class, long.class).getAnnotation(DownloadingListener.MainThread.class);
 				mCallbackInMainThread = null != annotation;
 				Rumtime.getInstance().log(TAG, " callback in main-Thread:" + mCallbackInMainThread);
-			} catch (NoSuchMethodException e) {
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
