@@ -1,5 +1,5 @@
 ## Downloader
-Downloader 是一个非常轻巧以及功能强大快速下载库，只有50KB 左右大小，对于大多数应用来说，性价比最高的一个下载库， 相比系统提供DownloadManager来说，Downloader 提供的API更简单，相比FileDownloader ，它更小且Downloader提供同步下载，系统通知进度等功能。
+Downloader 是一个非常轻巧以及功能强大快速下载库，只有50KB 左右大小，对于大多数应用来说，性价比最高的一个下载库， 相比系统提供DownloadManager、FileDownloader 来说，Downloader 提供的API更简单、轻量且Downloader提供同步下载，系统通知进度等功能。
 
 ## 特性
 
