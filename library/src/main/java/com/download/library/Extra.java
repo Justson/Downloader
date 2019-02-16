@@ -31,7 +31,7 @@ public class Extra implements Serializable, Cloneable {
     /**
      * 强制下载
      */
-    protected boolean mIsForceDownload = false;
+    protected boolean mIsForceDownload = true;
     /**
      * 显示系统通知
      */
@@ -94,68 +94,32 @@ public class Extra implements Serializable, Cloneable {
         return mHeaders;
     }
 
-    public Extra setHeaders(Map<String, String> headers) {
-        mHeaders = headers;
-        return this;
-    }
-
     protected Extra() {
 
     }
 
-
     public int getBlockMaxTime() {
         return blockMaxTime;
-    }
-
-    public Extra setBlockMaxTime(int blockMaxTime) {
-        this.blockMaxTime = blockMaxTime;
-        return this;
     }
 
     public String getUrl() {
         return mUrl;
     }
 
-    protected Extra setUrl(String url) {
-        this.mUrl = url;
-        return this;
-    }
-
     public String getUserAgent() {
         return mUserAgent;
-    }
-
-    protected Extra setUserAgent(String userAgent) {
-        this.mUserAgent = userAgent;
-        return this;
     }
 
     public String getContentDisposition() {
         return mContentDisposition;
     }
 
-    protected Extra setContentDisposition(String contentDisposition) {
-        this.mContentDisposition = contentDisposition;
-        return this;
-    }
-
     public String getMimetype() {
         return mMimetype;
     }
 
-    protected Extra setMimetype(String mimetype) {
-        this.mMimetype = mimetype;
-        return this;
-    }
-
     public long getContentLength() {
         return mContentLength;
-    }
-
-    protected Extra setContentLength(long contentLength) {
-        this.mContentLength = contentLength;
-        return this;
     }
 
     public boolean isForceDownload() {
@@ -166,23 +130,12 @@ public class Extra implements Serializable, Cloneable {
         return mEnableIndicator;
     }
 
-
     public long getDownloadTimeOut() {
         return downloadTimeOut;
     }
 
-    public Extra setDownloadTimeOut(long downloadTimeOut) {
-        this.downloadTimeOut = downloadTimeOut;
-        return this;
-    }
-
     public int getConnectTimeOut() {
         return connectTimeOut;
-    }
-
-    public Extra setConnectTimeOut(int connectTimeOut) {
-        this.connectTimeOut = connectTimeOut;
-        return this;
     }
 
     public int getIcon() {
@@ -195,45 +148,6 @@ public class Extra implements Serializable, Cloneable {
 
     public boolean isBreakPointDownload() {
         return mIsBreakPointDownload;
-    }
-
-    public Extra setBreakPointDownload(boolean breakPointDownload) {
-        mIsBreakPointDownload = breakPointDownload;
-        return this;
-    }
-
-    public Extra setForceDownload(boolean force) {
-        mIsForceDownload = force;
-        return this;
-    }
-
-    public Extra setEnableIndicator(boolean enableIndicator) {
-        this.mEnableIndicator = enableIndicator;
-        return this;
-    }
-
-
-    public Extra setIcon(@DrawableRes int icon) {
-        this.mIcon = icon;
-        return this;
-    }
-
-    public Extra setParallelDownload(boolean parallelDownload) {
-        mIsParallelDownload = parallelDownload;
-        return this;
-    }
-
-    public Extra addHeader(String key, String value) {
-        if (this.mHeaders == null) {
-            this.mHeaders = new android.support.v4.util.ArrayMap<>();
-        }
-        this.mHeaders.put(key, value);
-        return this;
-    }
-
-    public Extra setAutoOpen(boolean autoOpen) {
-        mAutoOpen = autoOpen;
-        return this;
     }
 
     public boolean isAutoOpen() {
