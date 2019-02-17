@@ -35,9 +35,6 @@ public class SyncDownloader extends Downloader implements Callable<File> {
 
 	SyncDownloader(DownloadTask downloadTask) {
 		super();
-		if (Looper.myLooper() == Looper.getMainLooper()) {
-			throw new UnsupportedOperationException("Sync download must call it in the non main-Thread  ");
-		}
 		mDownloadTask = downloadTask;
 	}
 
@@ -76,6 +73,9 @@ public class SyncDownloader extends Downloader implements Callable<File> {
 
 	@Override
 	public File call() throws Exception {
+		if (Looper.myLooper() == Looper.getMainLooper()) {
+			throw new UnsupportedOperationException("Sync download must call it in the non main-Thread  ");
+		}
 		synchronized (this) {
 			final CountDownLatch syncLatch = new CountDownLatch(1);
 			HANDLER.post(new Runnable() {

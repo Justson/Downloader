@@ -183,7 +183,8 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
 		this.mIsParallelDownload = false;
 		mIsForceDownload = false;
 		mEnableIndicator = true;
-		mIcon = R.drawable.ic_file_download_black_24dp;
+		mDownloadIcon = android.R.drawable.stat_sys_download;
+		mDownloadDoneIcon = android.R.drawable.stat_sys_download_done;
 		mIsParallelDownload = true;
 		mIsBreakPointDownload = true;
 		mUserAgent = "";
@@ -212,7 +213,7 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
 	}
 
 
-	protected DownloadTask setDownloadListener(DownloadListener downloadListener) {
+	public DownloadTask setDownloadListener(DownloadListener downloadListener) {
 		mDownloadListener = downloadListener;
 		return this;
 	}
@@ -244,7 +245,7 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
 	}
 
 	public DownloadTask setIcon(@DrawableRes int icon) {
-		this.mIcon = icon;
+		this.mDownloadIcon = icon;
 		return this;
 	}
 
@@ -303,6 +304,11 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
 
 	public DownloadTask setUrl(String url) {
 		this.mUrl = url;
+		return this;
+	}
+
+	public DownloadTask setDownloadDoneIcon(@DrawableRes int icon) {
+		this.mDownloadDoneIcon = icon;
 		return this;
 	}
 

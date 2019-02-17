@@ -40,7 +40,9 @@ public class Extra implements Serializable, Cloneable {
 	 * 通知icon
 	 */
 	@DrawableRes
-	protected int mIcon = R.drawable.ic_file_download_black_24dp;
+	protected int mDownloadIcon = android.R.drawable.stat_sys_download;
+	@DrawableRes
+	protected int mDownloadDoneIcon = android.R.drawable.stat_sys_download_done;
 	/**
 	 * 并行下载
 	 */
@@ -138,8 +140,8 @@ public class Extra implements Serializable, Cloneable {
 		return connectTimeOut;
 	}
 
-	public int getIcon() {
-		return mIcon;
+	public int getDownloadIcon() {
+		return mDownloadIcon;
 	}
 
 	public boolean isParallelDownload() {
@@ -152,6 +154,10 @@ public class Extra implements Serializable, Cloneable {
 
 	public boolean isAutoOpen() {
 		return mAutoOpen;
+	}
+
+	public int getDownloadDoneIcon() {
+		return mDownloadDoneIcon;
 	}
 
 	@Override

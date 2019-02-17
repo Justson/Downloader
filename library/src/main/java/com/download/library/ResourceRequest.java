@@ -86,7 +86,7 @@ public class ResourceRequest<T extends DownloadTask> {
 
 
 	public ResourceRequest setIcon(@DrawableRes int icon) {
-		mDownloadTask.mIcon = icon;
+		mDownloadTask.mDownloadIcon = icon;
 		return this;
 	}
 

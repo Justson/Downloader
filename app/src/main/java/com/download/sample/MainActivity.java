@@ -60,10 +60,10 @@ public class MainActivity extends AppCompatActivity {
 		mRecyclerView.setItemAnimator(new DefaultItemAnimator());
 		mRecyclerView.setAdapter(new NativeDownloadAdapter());
 		FileDownloader.setup(this.getApplicationContext());
-        /*new Thread(new Runnable() {
+        new Thread(new Runnable() {
             @Override
             public void run() {
-                File file = DownloadImpl.getInstance().with(getApplicationContext()).url("http://shouji.360tpcdn.com/170918/93d1695d87df5a0c0002058afc0361f1/com.ss.android.article.news_636.apk").setDownloadingListener(new DownloadListenerAdapter() {
+                File file = DownloadImpl.getInstance().with(getApplicationContext()).url("http://shouji.360tpcdn.com/170918/93d1695d87df5a0c0002058afc0361f1/com.ss.android.article.news_636.apk").setDownloadListenerAdapter(new DownloadListenerAdapter() {
                     @Override
                     public void onProgress(String url, long downloaded, long length, long usedTime) {
                         super.onProgress(url, downloaded, length, usedTime);
@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
                 }).get();
                 Log.i(TAG, " download success:" + ((File) file).length());
             }
-        }).start();*/
+        }).start();
         /*DownloadImpl.getInstance()
                 .with(getApplicationContext())
                 .setEnableIndicator(true)
@@ -122,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });*/
 
-		run2();
+//		run2();
 	}
 
 	private void run3() {
