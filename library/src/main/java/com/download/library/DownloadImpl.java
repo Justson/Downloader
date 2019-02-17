@@ -36,6 +36,7 @@ public class DownloadImpl {
 	private static final DownloadImpl sInstance = new DownloadImpl();
 	private ConcurrentHashMap<String, DownloadTask> mTasks = new ConcurrentHashMap<>();
 	private static Context mContext;
+	public static final String TAG = DownloadImpl.class.getSimpleName();
 
 	public static DownloadImpl getInstance() {
 		return sInstance;
@@ -129,20 +130,23 @@ public class DownloadImpl {
 		if (sets != null && sets.size() > 0) {
 			for (Map.Entry<String, DownloadTask> entry : sets) {
 				DownloadTask downloadTask = entry.getValue();
-				if (null != downloadTask) {
-					enqueue(downloadTask);
+				if (null == downloadTask || null == downloadTask.getContext() || TextUtils.isEmpty(downloadTask.getUrl())) {
+					Runtime.getInstance().logError(TAG, "downloadTask death .");
+					continue;
 				}
+				enqueue(downloadTask);
 			}
 		}
 	}
 
 	public boolean resume(String url) {
 		DownloadTask downloadTask = mTasks.get(url);
-		if (downloadTask != null) {
-			enqueue(downloadTask);
-			return true;
+		if (null == downloadTask || null == downloadTask.getContext() || TextUtils.isEmpty(downloadTask.getUrl())) {
+			Runtime.getInstance().logError(TAG, "downloadTask death .");
+			return false;
 		}
-		return false;
+		enqueue(downloadTask);
+		return true;
 	}
 
 	public boolean exist(String url) {

@@ -164,6 +164,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 		DOWNLOAD_MESSAGE.append(ERROR_TIME_OUT, "Download time is overtime . ");
 		DOWNLOAD_MESSAGE.append(ERROR_USER_CANCEL, "The user canceled the download . ");
 		DOWNLOAD_MESSAGE.append(ERROR_RESOURCE_NOT_FOUND, "Resouce not found . ");
+		DOWNLOAD_MESSAGE.append(ERROR_USER_PAUSE, "paused . ");
 		DOWNLOAD_MESSAGE.append(ERROR_LOAD, "IO Error . ");
 		DOWNLOAD_MESSAGE.append(ERROR_SERVICE, "Service Unavailable . ");
 		DOWNLOAD_MESSAGE.append(ERROR_TOO_MANY_REDIRECTS, "Too many redirects . ");
@@ -291,13 +292,15 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 				final boolean hasLength = ((contentLength = getHeaderFieldLong(mHttpURLConnection, "Content-Length")) > 0);
 				// 获取不到文件长度
 				final boolean finishKnown = (isEncodingChunked && hasLength || !isEncodingChunked && !hasLength);
-				if (finishKnown) {
+				int responseCode = mHttpURLConnection.getResponseCode();
+				if (responseCode == HTTP_PARTIAL && !hasLength) {
+					return SUCCESSFUL;
+				} else if (finishKnown) {
 					Runtime.getInstance().logError(TAG, " error , giving up ,"
 							+ "  EncodingChunked:" + isEncodingChunked
-							+ "  hasLength:" + hasLength + " response length:" + contentLength);
+							+ "  hasLength:" + hasLength + " response length:" + contentLength + " responseCode:" + responseCode);
 					return ERROR_LOAD;
 				}
-				int responseCode = mHttpURLConnection.getResponseCode();
 				switch (responseCode) {
 					case HTTP_OK:
 						this.mTotals = contentLength;
@@ -368,9 +371,11 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 	private final void start(HttpURLConnection httpURLConnection) throws IOException {
 		DownloadTask downloadTask = this.mDownloadTask;
 		if (TextUtils.isEmpty(downloadTask.getContentDisposition())) {
+			Runtime.getInstance().log(TAG, "response headers:" + httpURLConnection.getHeaderFields());
 			downloadTask.setContentDisposition(httpURLConnection.getHeaderField("Content-Disposition"));
 			String fileName = Runtime.getInstance().getFileNameByContentDisposition(downloadTask.getContentDisposition());
-			if (!downloadTask.getFile().getName().equals(fileName)) {
+			Runtime.getInstance().log(TAG, " ContentDisposition file name:" + fileName + "  file:" + downloadTask.getFile().getName() + " getContentDisposition:" + downloadTask.getContentDisposition());
+			if (!TextUtils.isEmpty(fileName) && !downloadTask.getFile().getName().equals(fileName)) {
 				downloadTask.getFile().renameTo(new File(downloadTask.getFile().getParent(), fileName));
 			}
 		}
@@ -517,6 +522,12 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 			if (integer == ERROR_USER_PAUSE) {
 				downloadTask.setStatus(STATUS_PAUSED);
 				downloadTask.pause();
+				if (null != downloadTask.getDownloadListener()) {
+					doCallback(integer);
+				}
+				if (null != mDownloadNotifier) {
+					mDownloadNotifier.onDownloadPaused();
+				}
 				return;
 			} else {
 				downloadTask.completed();
@@ -580,9 +591,11 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 		if (null == (mDownloadListener = downloadTask.getDownloadListener())) {
 			return false;
 		}
+		if (Runtime.getInstance().isDebug() && null != this.mThrowable) {
+			this.mThrowable.printStackTrace();
+		}
 		return mDownloadListener.onResult(code <= SUCCESSFUL ? null
-						: (null == this.mThrowable)
-						? (this.mThrowable = new RuntimeException("Download failed ， cause:" + DOWNLOAD_MESSAGE.get(code))) : this.mThrowable, downloadTask.getFileUri(),
+						: new DownloadException(code, "Download failed ， cause:" + DOWNLOAD_MESSAGE.get(code)), downloadTask.getFileUri(),
 				downloadTask.getUrl(), mDownloadTask);
 	}
 

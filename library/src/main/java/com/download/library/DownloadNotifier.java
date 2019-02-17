@@ -24,6 +24,8 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
@@ -52,6 +54,9 @@ public class DownloadNotifier {
 	private static final String TAG = Runtime.PREFIX + DownloadNotifier.class.getSimpleName();
 	private NotificationCompat.Action mAction;
 	private DownloadTask mDownloadTask;
+	private String mContent = "";
+	private static long sLastUpdateNoticationTime = SystemClock.elapsedRealtime();
+	private static final Handler NOTIFICATION_UPDATE_QUEUE = new Handler(Looper.getMainLooper());
 
 	DownloadNotifier(Context context, int id) {
 		this.mNotificationId = id;
@@ -151,7 +156,7 @@ public class DownloadNotifier {
 			mBuilder.addAction(mAction);
 
 		}
-		mBuilder.setContentText(mContext.getString(R.string.download_current_downloading_progress, (progress + "%")));
+		mBuilder.setContentText(this.mContent = mContext.getString(R.string.download_current_downloading_progress, (progress + "%")));
 		this.setProgress(100, progress, false);
 		sent();
 	}
@@ -167,9 +172,24 @@ public class DownloadNotifier {
 					buildCancelContent(mContext, mNotificationId, mDownloadTask.mUrl));
 			mBuilder.addAction(mAction);
 		}
-		mBuilder.setContentText(mContext.getString(R.string.download_current_downloaded_length, byte2FitMemorySize(loaded)));
+		mBuilder.setContentText(this.mContent = mContext.getString(R.string.download_current_downloaded_length, byte2FitMemorySize(loaded)));
 		this.setProgress(100, 20, true);
 		sent();
+	}
+
+	private long getDelayTime() {
+		synchronized (DownloadNotifier.class) {
+			long current = SystemClock.elapsedRealtime();
+			if (current >= (sLastUpdateNoticationTime + 500)) {
+				sLastUpdateNoticationTime = current;
+				return 0;
+			} else {
+				long detal = 500 - (current - sLastUpdateNoticationTime);
+				sLastUpdateNoticationTime += detal;
+				return detal;
+			}
+
+		}
 	}
 
 	private static String byte2FitMemorySize(final long byteNum) {
@@ -186,7 +206,52 @@ public class DownloadNotifier {
 		}
 	}
 
+	void onDownloadPaused() {
+		Runtime.getInstance().log(TAG, " onDownloadPaused:" + mDownloadTask.getUrl());
+		if (!this.hasDeleteContent()) {
+			this.setDelecte(buildCancelContent(mContext, mNotificationId, mDownloadTask.mUrl));
+		}
+		if (TextUtils.isEmpty(this.mContent)) {
+			this.mContent = "";
+		}
+		mBuilder.setContentText(this.mContent.concat("(").concat(mContext.getString(R.string.download_paused)).concat(")"));
+		mBuilder.setSmallIcon(mDownloadTask.getDownloadDoneIcon());
+		removeCancelAction();
+		mAddedCancelAction = false;
+		NOTIFICATION_UPDATE_QUEUE.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				sent();
+			}
+		}, getDelayTime());
+	}
+
 	void onDownloadFinished() {
+		removeCancelAction();
+		Intent mIntent = Runtime.getInstance().getCommonFileIntentCompat(mContext, mDownloadTask);
+		setDelecte(null);
+		if (null != mIntent) {
+			if (!(mContext instanceof Activity)) {
+				mIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			}
+			PendingIntent rightPendIntent = PendingIntent
+					.getActivity(mContext,
+							mNotificationId * 10000, mIntent,
+							PendingIntent.FLAG_UPDATE_CURRENT);
+			mBuilder.setSmallIcon(mDownloadTask.getDownloadDoneIcon());
+			mBuilder.setContentText(mContext.getString(R.string.download_click_open));
+			mBuilder.setProgress(100, 100, false);
+			mBuilder.setContentIntent(rightPendIntent);
+			NOTIFICATION_UPDATE_QUEUE.postDelayed(new Runnable() {
+				@Override
+				public void run() {
+					sent();
+				}
+			}, getDelayTime());
+		}
+	}
+
+	private void removeCancelAction() {
 		try {
 			/**
 			 * 用反射获取 mActions 该 Field , mBuilder.mActions 防止迭代该Field域访问不到，或者该Field
@@ -207,22 +272,6 @@ public class DownloadNotifier {
 			if (Runtime.getInstance().isDebug()) {
 				ignore.printStackTrace();
 			}
-		}
-		Intent mIntent = Runtime.getInstance().getCommonFileIntentCompat(mContext, mDownloadTask);
-		setDelecte(null);
-		if (null != mIntent) {
-			if (!(mContext instanceof Activity)) {
-				mIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-			}
-			PendingIntent rightPendIntent = PendingIntent
-					.getActivity(mContext,
-							mNotificationId * 10000, mIntent,
-							PendingIntent.FLAG_UPDATE_CURRENT);
-			mBuilder.setSmallIcon(mDownloadTask.getDownloadDoneIcon());
-			mBuilder.setContentText(mContext.getString(R.string.download_click_open));
-			mBuilder.setProgress(100, 100, false);
-			mBuilder.setContentIntent(rightPendIntent);
-			sent();
 		}
 	}
 

@@ -26,9 +26,11 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.download.library.DownloadException;
 import com.download.library.DownloadImpl;
 import com.download.library.DownloadListenerAdapter;
 import com.download.library.DownloadTask;
+import com.download.library.Downloader;
 import com.download.library.Extra;
 import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloadListener;
@@ -246,6 +248,8 @@ public class MainActivity extends AppCompatActivity {
 			downloadBean.setDownloadListenerAdapter(new DownloadListenerAdapter() {
 				@Override
 				public void onStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength, Extra extra) {
+					nativeDownloadViewHolder.mStatusButton.setText("暂停");
+					nativeDownloadViewHolder.mStatusButton.setEnabled(true);
 				}
 
 				@MainThread //回调到主线程，添加该注释
@@ -268,8 +272,14 @@ public class MainActivity extends AppCompatActivity {
 					nativeDownloadViewHolder.mStatusButton.setEnabled(false);
 					if (throwable == null) {
 						nativeDownloadViewHolder.mStatusButton.setText("已完成");
-					} else {
-						nativeDownloadViewHolder.mStatusButton.setText("出错");
+					} else if (throwable instanceof DownloadException) {
+						DownloadException downloadException = (DownloadException) throwable;
+						if (downloadException.getCode() == Downloader.ERROR_USER_PAUSE) {
+							nativeDownloadViewHolder.mStatusButton.setText("继续");
+							nativeDownloadViewHolder.mStatusButton.setEnabled(true);
+						} else {
+							nativeDownloadViewHolder.mStatusButton.setText("出错");
+						}
 					}
 					return super.onResult(throwable, uri, url, extra);
 				}
