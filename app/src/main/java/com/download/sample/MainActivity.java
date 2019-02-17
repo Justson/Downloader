@@ -273,7 +273,7 @@ public class MainActivity extends AppCompatActivity {
 
 	private static String byte2FitMemorySize(final long byteNum) {
 		if (byteNum < 0) {
-			return "shouldn't be less than zero!";
+			return "";
 		} else if (byteNum < 1024) {
 			return String.format(Locale.getDefault(), "%.1fB", (double) byteNum);
 		} else if (byteNum < 1048576) {

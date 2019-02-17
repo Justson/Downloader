@@ -104,6 +104,4 @@ public class SyncDownloader extends Downloader implements Callable<File> {
 		}
 		return mDownloadTask.mFile;
 	}
-
-
 }
