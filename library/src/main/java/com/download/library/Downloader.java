@@ -185,13 +185,27 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 			throw new NullPointerException("DownloadTask can't be null ");
 		}
 		if (null == downloadTask.getFile()) {
-			File file = Rumtime.getInstance().uniqueFile(downloadTask, null);
+			File file = downloadTask.isUniquePath()
+					? Rumtime.getInstance().uniqueFile(downloadTask, null)
+					: Rumtime.getInstance().createFile(downloadTask.mContext, downloadTask);
 			downloadTask.setFile(file);
 			Rumtime.getInstance().log(TAG, " file path:" + file.getAbsolutePath() + " isEnableIndicator:" + downloadTask.isEnableIndicator());
 		} else if (downloadTask.getFile().isDirectory()) {
-			File file = Rumtime.getInstance().uniqueFile(downloadTask, downloadTask.getFile());
+			File file = downloadTask.isUniquePath()
+					? Rumtime.getInstance().uniqueFile(downloadTask, downloadTask.getFile())
+					: Rumtime.getInstance().createFile(downloadTask.mContext, downloadTask, downloadTask.getFile());
 			downloadTask.setFile(file);
 			Rumtime.getInstance().log(TAG, "uniqueFile");
+		} else if (!downloadTask.getFile().exists()) {
+			try {
+				downloadTask.getFile().createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+				downloadTask.setFile(null);
+			}
+		}
+		if (null == downloadTask.getFile()) {
+			throw new RuntimeException("target file can't be created . ");
 		}
 		downloadTask.setStatus(DownloadTask.STATUS_DOWNLOADING);
 		createNotifier();

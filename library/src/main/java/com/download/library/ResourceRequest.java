@@ -48,6 +48,11 @@ public class ResourceRequest<T extends DownloadTask> {
 		return this;
 	}
 
+	public ResourceRequest setUniquePath(boolean uniquePath) {
+		mDownloadTask.setUniquePath(uniquePath);
+		return this;
+	}
+
 	public ResourceRequest target(@NonNull File target, @NonNull String authority) {
 		mDownloadTask.setFile(target, authority);
 		return this;

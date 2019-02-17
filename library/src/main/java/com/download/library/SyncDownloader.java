@@ -22,6 +22,8 @@ import android.os.Looper;
 import java.io.File;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author cenxiaozhong
@@ -32,6 +34,8 @@ public class SyncDownloader extends Downloader implements Callable<File> {
 
 	private static final Handler HANDLER = new Handler(Looper.getMainLooper());
 	private volatile boolean mEnqueue;
+	private ReentrantLock mLock = new ReentrantLock();
+	private Condition mCondition = mLock.newCondition();
 
 	SyncDownloader(DownloadTask downloadTask) {
 		super();
@@ -43,9 +47,7 @@ public class SyncDownloader extends Downloader implements Callable<File> {
 		try {
 			super.onPreExecute();
 		} catch (Throwable throwable) {
-			synchronized (this) {
-				notify();
-			}
+			this.mThrowable = throwable;
 			throw throwable;
 		}
 	}
@@ -55,8 +57,11 @@ public class SyncDownloader extends Downloader implements Callable<File> {
 		try {
 			super.onPostExecute(integer);
 		} finally {
-			synchronized (this) {
-				notify();
+			mLock.lock();
+			try {
+				mCondition.signal();
+			} finally {
+				mLock.unlock();
 			}
 		}
 	}
@@ -76,7 +81,8 @@ public class SyncDownloader extends Downloader implements Callable<File> {
 		if (Looper.myLooper() == Looper.getMainLooper()) {
 			throw new UnsupportedOperationException("Sync download must call it in the non main-Thread  ");
 		}
-		synchronized (this) {
+		mLock.lock();
+		try {
 			final CountDownLatch syncLatch = new CountDownLatch(1);
 			HANDLER.post(new Runnable() {
 				@Override
@@ -89,7 +95,9 @@ public class SyncDownloader extends Downloader implements Callable<File> {
 			if (!mEnqueue) {
 				throw new RuntimeException("download task already exist!");
 			}
-			wait();
+			mCondition.await();
+		} finally {
+			mLock.unlock();
 		}
 		if (null != mThrowable) {
 			throw (RuntimeException) mThrowable;

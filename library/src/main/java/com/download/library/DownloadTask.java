@@ -52,6 +52,7 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
 	long endTime = 0L;
 	long detalTime = 0L;
 	boolean isCustomFile = false;
+	boolean uniquePath = true;
 
 	@IntDef({STATUS_NEW, STATUS_PENDDING, STATUS_DOWNLOADING, STATUS_PAUSED, STATUS_COMPLETED})
 	@interface DownloadTaskStatus {
@@ -322,6 +323,14 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
 			throwable.printStackTrace();
 			return new DownloadTask();
 		}
+	}
+
+	public boolean isUniquePath() {
+		return uniquePath;
+	}
+
+	public void setUniquePath(boolean uniquePath) {
+		this.uniquePath = uniquePath;
 	}
 
 	public void setLength(long length) {
