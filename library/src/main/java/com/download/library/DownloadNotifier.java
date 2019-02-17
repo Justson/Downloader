@@ -188,7 +188,6 @@ public class DownloadNotifier {
 				sLastUpdateNoticationTime += detal;
 				return detal;
 			}
-
 		}
 	}
 
