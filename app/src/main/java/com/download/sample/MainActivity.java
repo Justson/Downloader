@@ -405,6 +405,17 @@ public class MainActivity extends AppCompatActivity {
 		downloadBean.setContext(this.getApplicationContext());
 		downloadBean.setAutoOpen(true);
 		mDownloadTasks.add(downloadBean);
+
+
+		downloadBean = new DownloadBean("天天跑酷", "http://www.httpwatch.com/httpgallery/chunked/chunkedimage.aspx?0.04400023248109086", "http://183.232.175.155/imtt.dd.qq.com/16891/83B450E67953CC7C4A3ECFBF70BC276D.apk?mkey=5c69a52c78e505fd&f=1026&fsname=com.tencent.pao_1.0.62.0_162.apk&csr=97c2&cip=120.229.35.8&proto=http");
+		downloadBean.setContext(this.getApplicationContext());
+		downloadBean.setAutoOpen(true);
+		mDownloadTasks.add(downloadBean);
+
+		downloadBean = new DownloadBean("应用宝", "http://www.httpwatch.com/httpgallery/chunked/chunkedimage.aspx?0.04400023248109086", "http://183.235.254.101/cache/imtt.dd.qq.com/16891/channel_73570706_1000047_1550372800316.apk?hsr=5848&cip=120.229.35.8&proto=http&ich_args2=29-17235801007468_b6001a85eb3b78e73d317dae40d3becc_10004302_9c89612cd3c2f8d09539518939a83798_65e2b3e5968aa7f2bea9fdae95ebc635 ");
+		downloadBean.setContext(this.getApplicationContext());
+		downloadBean.setAutoOpen(true);
+		mDownloadTasks.add(downloadBean);
 	}
 
 	public static int dp2px(Context context, float dpValue) {

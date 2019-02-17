@@ -27,6 +27,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 
@@ -88,13 +89,7 @@ public class DownloadNotifier {
 	}
 
 	void initBuilder(DownloadTask downloadTask) {
-		String title = (null == downloadTask.getFile() || TextUtils.isEmpty(downloadTask.getFile().getName())) ?
-				mContext.getString(R.string.download_file_download) :
-				downloadTask.getFile().getName();
-
-		if (title.length() > 20) {
-			title = "..." + title.substring(title.length() - 20, title.length());
-		}
+		String title = getTitle(downloadTask);
 		this.mDownloadTask = downloadTask;
 		mBuilder.setContentIntent(PendingIntent.getActivity(mContext, 200, new Intent(), PendingIntent.FLAG_UPDATE_CURRENT));
 		mBuilder.setSmallIcon(mDownloadTask.getDownloadIcon());
@@ -107,6 +102,23 @@ public class DownloadNotifier {
 		int defaults = 0;
 		mBuilder.setDeleteIntent(buildCancelContent(mContext, downloadTask.getId(), downloadTask.getUrl()));
 		mBuilder.setDefaults(defaults);
+	}
+
+	void updateTitle(DownloadTask downloadTask) {
+		String title = getTitle(downloadTask);
+		mBuilder.setContentTitle(title);
+	}
+
+	@NonNull
+	private String getTitle(DownloadTask downloadTask) {
+		String title = (null == downloadTask.getFile() || TextUtils.isEmpty(downloadTask.getFile().getName())) ?
+				mContext.getString(R.string.download_file_download) :
+				downloadTask.getFile().getName();
+
+		if (title.length() > 20) {
+			title = "..." + title.substring(title.length() - 20, title.length());
+		}
+		return title;
 	}
 
 	private PendingIntent buildCancelContent(Context context, int id, String url) {

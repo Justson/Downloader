@@ -53,6 +53,7 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
 	long detalTime = 0L;
 	boolean isCustomFile = false;
 	boolean uniquePath = true;
+	int connectTimes = 0;
 
 	@IntDef({STATUS_NEW, STATUS_PENDDING, STATUS_DOWNLOADING, STATUS_PAUSED, STATUS_COMPLETED})
 	@interface DownloadTaskStatus {

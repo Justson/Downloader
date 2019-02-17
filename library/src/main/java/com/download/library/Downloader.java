@@ -276,35 +276,49 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 	private int doDownload() throws IOException {
 		DownloadTask downloadTask = this.mDownloadTask;
 		downloadTask.updateTime(this.mBeginTime);
-		int redirectionCount = 1;
+		int redirectionCount = 0;
 		URL url = new URL(downloadTask.getUrl());
-		HttpURLConnection mHttpURLConnection = null;
+		HttpURLConnection httpURLConnection = null;
 		try {
 			for (; redirectionCount++ <= MAX_REDIRECTS; ) {
-				if (null != mHttpURLConnection) {
-					mHttpURLConnection.disconnect();
+				if (null != httpURLConnection) {
+					httpURLConnection.disconnect();
 				}
-				mHttpURLConnection = createUrlConnectionAndSettingHeaders(url);
-				mHttpURLConnection.connect();
+				if (downloadTask.connectTimes <= 0) {
+					httpURLConnection = createUrlConnection(url);
+					httpURLConnection.connect();
+				} else {
+					httpURLConnection = createUrlConnection(url);
+					settingHeaders(downloadTask, httpURLConnection);
+					httpURLConnection.connect();
+				}
+
 				final boolean isEncodingChunked = "chunked".equalsIgnoreCase(
-						mHttpURLConnection.getHeaderField("Transfer-Encoding"));
+						httpURLConnection.getHeaderField("Transfer-Encoding"));
 				long contentLength = -1;
-				final boolean hasLength = ((contentLength = getHeaderFieldLong(mHttpURLConnection, "Content-Length")) > 0);
+				final boolean hasLength = ((contentLength = getHeaderFieldLong(httpURLConnection, "Content-Length")) > 0);
 				// 获取不到文件长度
 				final boolean finishKnown = (isEncodingChunked && hasLength || !isEncodingChunked && !hasLength);
-				int responseCode = mHttpURLConnection.getResponseCode();
+				int responseCode = httpURLConnection.getResponseCode();
 				if (responseCode == HTTP_PARTIAL && !hasLength) {
 					return SUCCESSFUL;
-				} else if (finishKnown) {
-					Runtime.getInstance().logError(TAG, " error , giving up ,"
-							+ "  EncodingChunked:" + isEncodingChunked
-							+ "  hasLength:" + hasLength + " response length:" + contentLength + " responseCode:" + responseCode);
-					return ERROR_LOAD;
 				}
 				switch (responseCode) {
 					case HTTP_OK:
+						if (finishKnown) {
+							Runtime.getInstance().logError(TAG, " error , giving up ,"
+									+ "  EncodingChunked:" + isEncodingChunked
+									+ "  hasLength:" + hasLength + " response length:" + contentLength + " responseCode:" + responseCode);
+							return ERROR_LOAD;
+						}
 						this.mTotals = contentLength;
-						start(mHttpURLConnection);
+						if (downloadTask.connectTimes <= 0) {
+							start(httpURLConnection);
+							downloadTask.connectTimes++;
+							if (downloadTask.getFile().length() > 0 && !isEncodingChunked) {
+								continue;
+							}
+						}
 						if (isEncodingChunked) {
 							this.mTotals = -1L;
 						} else if (downloadTask.getFile().length() >= contentLength) {
@@ -315,12 +329,18 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 						if (!isEncodingChunked && !checkSpace()) {
 							return ERROR_STORAGE;
 						}
-						saveEtag(mHttpURLConnection);
+						saveEtag(httpURLConnection);
 						downloadTask.setTotalsLength(this.mTotals);
-						return transferData(getInputStream(mHttpURLConnection),
+						return transferData(getInputStream(httpURLConnection),
 								new LoadingRandomAccessFile(downloadTask.getFile()),
 								false);
 					case HTTP_PARTIAL:
+						if (finishKnown) {
+							Runtime.getInstance().logError(TAG, " error , giving up ,"
+									+ "  EncodingChunked:" + isEncodingChunked
+									+ "  hasLength:" + hasLength + " response length:" + contentLength + " responseCode:" + responseCode);
+							return ERROR_LOAD;
+						}
 						if (isEncodingChunked) {
 							this.mTotals = -1L;
 						} else if (this.mTotals > 0L && contentLength + downloadTask.getFile().length() != this.mTotals) {  // 服务端响应文件长度不正确，或者本地文件长度被修改。
@@ -329,15 +349,15 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 							this.mTotals = contentLength + downloadTask.getFile().length();
 						}
 						downloadTask.setTotalsLength(this.mTotals);
-						start(mHttpURLConnection);
 						if (!isEncodingChunked && !checkSpace()) {
 							return ERROR_STORAGE;
 						}
-						return transferData(getInputStream(mHttpURLConnection),
+						return transferData(getInputStream(httpURLConnection),
 								new LoadingRandomAccessFile(downloadTask.getFile()),
 								!isEncodingChunked);
 					case HTTP_RANGE_NOT_SATISFIABLE:
 						if (null != downloadTask.getFile()) {
+							Runtime.getInstance().log(TAG, " range not satisfiable .");
 							downloadTask.getFile().delete();
 							downloadTask.getFile().createNewFile();
 						}
@@ -346,7 +366,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 					case HTTP_MOVED_TEMP:
 					case HTTP_SEE_OTHER:
 					case HTTP_TEMP_REDIRECT:
-						final String location = mHttpURLConnection.getHeaderField("Location");
+						final String location = httpURLConnection.getHeaderField("Location");
 						url = new URL(url, location);
 						continue;
 					case HTTP_NOT_FOUND:
@@ -362,8 +382,8 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 			}
 			return ERROR_TOO_MANY_REDIRECTS;
 		} finally {
-			if (null != mHttpURLConnection) {
-				mHttpURLConnection.disconnect();
+			if (null != httpURLConnection) {
+				httpURLConnection.disconnect();
 			}
 		}
 	}
@@ -376,7 +396,19 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 			String fileName = Runtime.getInstance().getFileNameByContentDisposition(downloadTask.getContentDisposition());
 			Runtime.getInstance().log(TAG, " ContentDisposition file name:" + fileName + "  file:" + downloadTask.getFile().getName() + " getContentDisposition:" + downloadTask.getContentDisposition());
 			if (!TextUtils.isEmpty(fileName) && !downloadTask.getFile().getName().equals(fileName)) {
-				downloadTask.getFile().renameTo(new File(downloadTask.getFile().getParent(), fileName));
+				Runtime.getInstance().log(TAG, " new File(downloadTask.getFile().getParent(), fileName):" + new File(downloadTask.getFile().getParent(), fileName).getAbsolutePath());
+				File renameTarget = new File(downloadTask.getFile().getParent(), fileName);
+				if (renameTarget.exists()) {
+					downloadTask.setFile(renameTarget);
+					updateNotifierTitle();
+				} else {
+					boolean success = downloadTask.getFile().renameTo(renameTarget);
+					if (success) {
+						downloadTask.setFile(renameTarget);
+						updateNotifierTitle();
+					}
+				}
+				Runtime.getInstance().log(TAG, " rename:" + downloadTask.getFile().getAbsolutePath() + " exist:" + downloadTask.getFile().exists());
 			}
 		}
 		if (TextUtils.isEmpty(downloadTask.getMimetype())) {
@@ -384,6 +416,13 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 		}
 		downloadTask.setContentLength(getHeaderFieldLong(httpURLConnection, "Content-Length"));
 		onStart();
+	}
+
+	private void updateNotifierTitle() {
+		DownloadTask downloadTask = this.mDownloadTask;
+		if (null != mDownloadNotifier && null != downloadTask) {
+			mDownloadNotifier.updateTitle(downloadTask);
+		}
 	}
 
 	protected void onStart() throws IOException {
@@ -448,7 +487,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 		}
 	}
 
-	private HttpURLConnection createUrlConnectionAndSettingHeaders(URL url) throws IOException {
+	private HttpURLConnection createUrlConnection(URL url) throws IOException {
 		DownloadTask downloadTask = this.mDownloadTask;
 		HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
 		httpURLConnection.setConnectTimeout(mConnectTimeOut);
@@ -456,7 +495,10 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 		httpURLConnection.setReadTimeout(downloadTask.getBlockMaxTime());
 		httpURLConnection.setRequestProperty("Accept", "*/*");
 		httpURLConnection.setRequestProperty("Accept-Encoding", "deflate,gzip");
-		httpURLConnection.setRequestProperty("Connection", "close");
+		return httpURLConnection;
+	}
+
+	private void settingHeaders(DownloadTask downloadTask, HttpURLConnection httpURLConnection) {
 		Map<String, String> headers = null;
 		if (null != (headers = downloadTask.getHeaders()) &&
 				!headers.isEmpty()) {
@@ -475,7 +517,8 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 			}
 			httpURLConnection.setRequestProperty("Range", "bytes=" + (mLastLoaded = downloadTask.getFile().length()) + "-");
 		}
-		return httpURLConnection;
+		httpURLConnection.setRequestProperty("Connection", "close");
+		Runtime.getInstance().log(TAG, "settingHeaders");
 	}
 
 
