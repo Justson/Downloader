@@ -32,7 +32,7 @@ public class DefaultStorageEngine implements StorageEngine {
 
 	@Override
 	public void save(String key, String value) {
-		SharedPreferences mSharedPreferences = mContext.getSharedPreferences(Rumtime.getInstance().getIdentify(), Context.MODE_PRIVATE);
+		SharedPreferences mSharedPreferences = mContext.getSharedPreferences(Runtime.getInstance().getIdentify(), Context.MODE_PRIVATE);
 		SharedPreferences.Editor editor = mSharedPreferences.edit();
 		editor.putString(key, value);
 		editor.apply();
@@ -40,7 +40,7 @@ public class DefaultStorageEngine implements StorageEngine {
 
 	@Override
 	public String get(String key, String defaultValue) {
-		SharedPreferences mSharedPreferences = mContext.getSharedPreferences(Rumtime.getInstance().getIdentify(), Context.MODE_PRIVATE);
+		SharedPreferences mSharedPreferences = mContext.getSharedPreferences(Runtime.getInstance().getIdentify(), Context.MODE_PRIVATE);
 		String value = mSharedPreferences.getString(key, defaultValue);
 		return value;
 	}

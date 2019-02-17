@@ -33,7 +33,6 @@ dependencies {
     testCompile 'junit:junit:4.12'
     implementation project(':library')
     implementation 'com.liulishuo.filedownloader:library:1.7.4'
-//    compile 'com.download.library:download:4.0.3-alpha-2'
-//    implementation 'com.github.Justson:Downloader:4.0.3-alpha'
+//    implementation 'com.github.Justson:Downloader:v4.0.3-beta'
     implementation 'com.squareup.picasso:picasso:2.71828'
 }

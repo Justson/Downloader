@@ -116,7 +116,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 	/**
 	 * log filter
 	 */
-	private static final String TAG = Rumtime.PREFIX + Downloader.class.getSimpleName();
+	private static final String TAG = Runtime.PREFIX + Downloader.class.getSimpleName();
 	/**
 	 * true 已经取消下载
 	 */
@@ -186,16 +186,16 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 		}
 		if (null == downloadTask.getFile()) {
 			File file = downloadTask.isUniquePath()
-					? Rumtime.getInstance().uniqueFile(downloadTask, null)
-					: Rumtime.getInstance().createFile(downloadTask.mContext, downloadTask);
+					? Runtime.getInstance().uniqueFile(downloadTask, null)
+					: Runtime.getInstance().createFile(downloadTask.mContext, downloadTask);
 			downloadTask.setFile(file);
-			Rumtime.getInstance().log(TAG, " file path:" + file.getAbsolutePath() + " isEnableIndicator:" + downloadTask.isEnableIndicator());
+			Runtime.getInstance().log(TAG, " file path:" + file.getAbsolutePath() + " isEnableIndicator:" + downloadTask.isEnableIndicator());
 		} else if (downloadTask.getFile().isDirectory()) {
 			File file = downloadTask.isUniquePath()
-					? Rumtime.getInstance().uniqueFile(downloadTask, downloadTask.getFile())
-					: Rumtime.getInstance().createFile(downloadTask.mContext, downloadTask, downloadTask.getFile());
+					? Runtime.getInstance().uniqueFile(downloadTask, downloadTask.getFile())
+					: Runtime.getInstance().createFile(downloadTask.mContext, downloadTask, downloadTask.getFile());
 			downloadTask.setFile(file);
-			Rumtime.getInstance().log(TAG, "uniqueFile");
+			Runtime.getInstance().log(TAG, "uniqueFile");
 		} else if (!downloadTask.getFile().exists()) {
 			try {
 				downloadTask.getFile().createNewFile();
@@ -217,7 +217,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 	private boolean checkSpace() {
 		DownloadTask downloadTask = this.mDownloadTask;
 		if (downloadTask.getTotalsLength() - downloadTask.getFile().length() > (getAvailableStorage() - (100 * 1024 * 1024))) {
-			Rumtime.getInstance().logError(TAG, " 空间不足");
+			Runtime.getInstance().logError(TAG, " 空间不足");
 			return false;
 		}
 		return true;
@@ -239,9 +239,9 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 	private boolean checkNet() {
 		DownloadTask downloadTask = this.mDownloadTask;
 		if (!downloadTask.isForceDownload()) {
-			return Rumtime.getInstance().checkWifi(downloadTask.getContext());
+			return Runtime.getInstance().checkWifi(downloadTask.getContext());
 		} else {
-			return Rumtime.getInstance().checkNetwork(downloadTask.getContext());
+			return Runtime.getInstance().checkNetwork(downloadTask.getContext());
 		}
 	}
 
@@ -249,17 +249,17 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 	protected Integer doInBackground(Void... params) {
 		int result = ERROR_LOAD;
 		String name = Thread.currentThread().getName();
-		Thread.currentThread().setName("pool-agentweb-thread-" + Rumtime.getInstance().generateGlobalThreadId());
+		Thread.currentThread().setName("pool-agentweb-thread-" + Runtime.getInstance().generateGlobalThreadId());
 		try {
 			this.mBeginTime = SystemClock.elapsedRealtime();
 			if (!checkNet()) {
-				Rumtime.getInstance().logError(TAG, " Network error,isForceDownload:" + mDownloadTask.isForceDownload());
+				Runtime.getInstance().logError(TAG, " Network error,isForceDownload:" + mDownloadTask.isForceDownload());
 				return ERROR_NETWORK_CONNECTION;
 			}
 			result = doDownload();
 		} catch (IOException e) {
 			this.mThrowable = e;
-			if (Rumtime.getInstance().isDebug()) {
+			if (Runtime.getInstance().isDebug()) {
 				e.printStackTrace();
 			}
 		} finally {
@@ -288,7 +288,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 				// 获取不到文件长度
 				final boolean finishKnown = (isEncodingChunked && hasLength || !isEncodingChunked && !hasLength);
 				if (finishKnown) {
-					Rumtime.getInstance().logError(TAG, " error , giving up ,"
+					Runtime.getInstance().logError(TAG, " error , giving up ,"
 							+ "  EncodingChunked:" + isEncodingChunked
 							+ "  hasLength:" + hasLength + " response length:" + contentLength);
 					return ERROR_LOAD;
@@ -365,6 +365,10 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 		DownloadTask downloadTask = this.mDownloadTask;
 		if (TextUtils.isEmpty(downloadTask.getContentDisposition())) {
 			downloadTask.setContentDisposition(httpURLConnection.getHeaderField("Content-Disposition"));
+			String fileName = Runtime.getInstance().getFileNameByContentDisposition(downloadTask.getContentDisposition());
+			if (!downloadTask.getFile().getName().equals(fileName)) {
+				downloadTask.getFile().renameTo(new File(downloadTask.getFile().getParent(), fileName));
+			}
 		}
 		if (TextUtils.isEmpty(downloadTask.getMimetype())) {
 			downloadTask.setMimetype(httpURLConnection.getHeaderField("Content-Type"));
@@ -405,7 +409,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 		try {
 			return null == field ? -1L : Long.parseLong(field);
 		} catch (NumberFormatException e) {
-			if (Rumtime.getInstance().isDebug()) {
+			if (Runtime.getInstance().isDebug()) {
 				e.printStackTrace();
 			}
 		}
@@ -418,16 +422,16 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 			return;
 		}
 		String url = mDownloadTask.getUrl();
-		String urlMD5 = Rumtime.getInstance().md5(url);
-		Rumtime.getInstance().log(TAG, "save etag:" + etag);
-		StorageEngine storageEngine = Rumtime.getInstance().getStorageEngine(mDownloadTask.mContext);
+		String urlMD5 = Runtime.getInstance().md5(url);
+		Runtime.getInstance().log(TAG, "save etag:" + etag);
+		StorageEngine storageEngine = Runtime.getInstance().getStorageEngine(mDownloadTask.mContext);
 		storageEngine.save(urlMD5, etag);
 	}
 
 	private String getEtag() {
 		String url = mDownloadTask.getUrl();
-		String urlMD5 = Rumtime.getInstance().md5(url);
-		String mEtag = Rumtime.getInstance().getStorageEngine(mDownloadTask.mContext).get(urlMD5, "-1");
+		String urlMD5 = Runtime.getInstance().md5(url);
+		String mEtag = Runtime.getInstance().getStorageEngine(mDownloadTask.mContext).get(urlMD5, "-1");
 		if (!TextUtils.isEmpty(mEtag) && !"-1".equals(mEtag)) {
 			return mEtag;
 		} else {
@@ -444,10 +448,10 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 		httpURLConnection.setRequestProperty("Accept", "*/*");
 		httpURLConnection.setRequestProperty("Accept-Encoding", "deflate,gzip");
 		httpURLConnection.setRequestProperty("Connection", "close");
-		Map<String, String> mHeaders = null;
-		if (null != (mHeaders = downloadTask.getHeaders()) &&
-				!mHeaders.isEmpty()) {
-			for (Map.Entry<String, String> entry : mHeaders.entrySet()) {
+		Map<String, String> headers = null;
+		if (null != (headers = downloadTask.getHeaders()) &&
+				!headers.isEmpty()) {
+			for (Map.Entry<String, String> entry : headers.entrySet()) {
 				if (TextUtils.isEmpty(entry.getKey()) || TextUtils.isEmpty(entry.getValue())) {
 					continue;
 				}
@@ -457,7 +461,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 		if (null != downloadTask.getFile() && downloadTask.getFile().length() > 0) {
 			String mEtag = "";
 			if (!TextUtils.isEmpty((mEtag = getEtag()))) {
-				Rumtime.getInstance().log(TAG, "Etag:" + mEtag);
+				Runtime.getInstance().log(TAG, "Etag:" + mEtag);
 				httpURLConnection.setRequestProperty("If-Match", getEtag());
 			}
 			httpURLConnection.setRequestProperty("Range", "bytes=" + (mLastLoaded = downloadTask.getFile().length()) + "-");
@@ -471,7 +475,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 		DownloadTask downloadTask = this.mDownloadTask;
 		try {
 			long currentTime = SystemClock.elapsedRealtime();
-//			Rumtime.getInstance().log(TAG, " currentTime:" + currentTime);
+//			Runtime.getInstance().log(TAG, " currentTime:" + currentTime);
 			this.mUsedTime = currentTime - this.mBeginTime;
 			if (mUsedTime == 0) {
 				this.mAverageSpeed = 0;
@@ -513,7 +517,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 			} else {
 				downloadTask.completed();
 			}
-			Rumtime.getInstance().log(TAG, "onPostExecute:" + DOWNLOAD_MESSAGE.get(integer));
+			Runtime.getInstance().log(TAG, "onPostExecute:" + DOWNLOAD_MESSAGE.get(integer));
 			downloadTask.setStatus(DownloadTask.STATUS_COMPLETED);
 			boolean isCancelDispose = doCallback(integer);
 			// Error
@@ -536,7 +540,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 			if (!downloadTask.isAutoOpen()) {
 				return;
 			}
-			Intent mIntent = Rumtime.getInstance().getCommonFileIntentCompat(downloadTask.getContext(), downloadTask);
+			Intent mIntent = Runtime.getInstance().getCommonFileIntentCompat(downloadTask.getContext(), downloadTask);
 			if (null == mIntent) {
 				return;
 			}
@@ -545,7 +549,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 			}
 			downloadTask.getContext().startActivity(mIntent);
 		} catch (Throwable throwable) {
-			if (Rumtime.getInstance().isDebug()) {
+			if (Runtime.getInstance().isDebug()) {
 				throwable.printStackTrace();
 			}
 		} finally {
@@ -582,7 +586,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 	private void createNotifier() {
 		DownloadTask downloadTask = this.mDownloadTask;
 		Context mContext = downloadTask.getContext().getApplicationContext();
-		Rumtime.getInstance().log(TAG, " downloadTask.isEnableIndicator()):" + downloadTask.isEnableIndicator() + " file:" + downloadTask.getFile().getAbsolutePath());
+		Runtime.getInstance().log(TAG, " downloadTask.isEnableIndicator()):" + downloadTask.isEnableIndicator() + " file:" + downloadTask.getFile().getAbsolutePath());
 		if (null != mContext && downloadTask.isEnableIndicator()) {
 			mDownloadNotifier = new DownloadNotifier(mContext, downloadTask.getId());
 			mDownloadNotifier.initBuilder(downloadTask);
@@ -689,12 +693,12 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 		mDownloadTimeOut = mDownloadTask.getDownloadTimeOut();
 		mConnectTimeOut = mDownloadTask.getConnectTimeOut();
 		enableProgress = mDownloadTask.isEnableIndicator() || null != mDownloadTask.getDownloadingListener();
-		Rumtime.getInstance().log(TAG, " enableProgress:" + enableProgress);
+		Runtime.getInstance().log(TAG, " enableProgress:" + enableProgress);
 		if (null != mDownloadTask.getDownloadingListener()) {
 			try {
 				Annotation annotation = mDownloadTask.getDownloadingListener().getClass().getDeclaredMethod("onProgress", String.class, long.class, long.class, long.class).getAnnotation(DownloadingListener.MainThread.class);
 				mCallbackInMainThread = null != annotation;
-				Rumtime.getInstance().log(TAG, " callback in main-Thread:" + mCallbackInMainThread);
+				Runtime.getInstance().log(TAG, " callback in main-Thread:" + mCallbackInMainThread);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

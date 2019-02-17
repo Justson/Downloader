@@ -42,9 +42,9 @@ import java.util.regex.Pattern;
  * @date 19-2-12
  * @since 1.0.0
  */
-public class Rumtime {
+public class Runtime {
 
-	private static final Rumtime sInstance = new Rumtime();
+	private static final Runtime sInstance = new Runtime();
 	private DownloadTask sDefaultDownloadTask;
 	private AtomicInteger mIDGenerator;
 	private AtomicInteger mThreadGlobalCounter;
@@ -64,12 +64,12 @@ public class Rumtime {
 		return DEBUG;
 	}
 
-	private Rumtime() {
+	private Runtime() {
 		mIDGenerator = new AtomicInteger(1);
 		mThreadGlobalCounter = new AtomicInteger(1);
 	}
 
-	public static Rumtime getInstance() {
+	public static Runtime getInstance() {
 		return sInstance;
 	}
 
@@ -197,7 +197,7 @@ public class Rumtime {
 		return mFile;
 	}
 
-	private String getFileNameByContentDisposition(String contentDisposition) {
+	String getFileNameByContentDisposition(String contentDisposition) {
 		if (TextUtils.isEmpty(contentDisposition)) {
 			return "";
 		}
@@ -237,8 +237,8 @@ public class Rumtime {
 	}
 
 	public File uniqueFile(@NonNull DownloadTask downloadTask, @Nullable File targetDir) {
-		String md5 = Rumtime.getInstance().md5(downloadTask.getUrl());
-		File dir = (targetDir == null || !targetDir.isDirectory()) ? Rumtime.getInstance().getDir(downloadTask.getContext(), downloadTask.isEnableIndicator()) : targetDir;
+		String md5 = Runtime.getInstance().md5(downloadTask.getUrl());
+		File dir = (targetDir == null || !targetDir.isDirectory()) ? Runtime.getInstance().getDir(downloadTask.getContext(), downloadTask.isEnableIndicator()) : targetDir;
 		File target = new File(dir, md5);
 		if (!target.exists()) {
 			target.mkdirs();

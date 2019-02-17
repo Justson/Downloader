@@ -33,7 +33,7 @@ public class ResourceRequest<T extends DownloadTask> {
 
 	static ResourceRequest with(Context context) {
 		ResourceRequest resourceRequest = new ResourceRequest();
-		resourceRequest.mDownloadTask = Rumtime.getInstance().getDefaultDownloadTask();
+		resourceRequest.mDownloadTask = Runtime.getInstance().getDefaultDownloadTask();
 		resourceRequest.mDownloadTask.setContext(context);
 		return resourceRequest;
 	}
@@ -131,6 +131,10 @@ public class ResourceRequest<T extends DownloadTask> {
 	setDownloadListenerAdapter(DownloadListenerAdapter downloadListenerAdapter) {
 		mDownloadTask.setDownloadListenerAdapter(downloadListenerAdapter);
 		return this;
+	}
+
+	public DownloadTask getDownloadTask() {
+		return this.mDownloadTask;
 	}
 
 	public void enqueue() {

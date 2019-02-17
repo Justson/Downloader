@@ -60,6 +60,18 @@ public class MainActivity extends AppCompatActivity {
 		mRecyclerView.setItemAnimator(new DefaultItemAnimator());
 		mRecyclerView.setAdapter(new NativeDownloadAdapter());
 		FileDownloader.setup(this.getApplicationContext());
+		this.findViewById(R.id.pauseAllBtn).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				DownloadImpl.getInstance().pauseAll();
+			}
+		});
+		this.findViewById(R.id.resumeAllBtn).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				DownloadImpl.getInstance().resumeAll();
+			}
+		});
        /* new Thread(new Runnable() {
             @Override
             public void run() {

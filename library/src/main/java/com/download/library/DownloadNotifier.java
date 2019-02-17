@@ -49,22 +49,22 @@ public class DownloadNotifier {
 	private Context mContext;
 	private String mChannelId = "";
 	private volatile boolean mAddedCancelAction = false;
-	private static final String TAG = Rumtime.PREFIX + DownloadNotifier.class.getSimpleName();
+	private static final String TAG = Runtime.PREFIX + DownloadNotifier.class.getSimpleName();
 	private NotificationCompat.Action mAction;
 	private DownloadTask mDownloadTask;
 
 	DownloadNotifier(Context context, int id) {
 		this.mNotificationId = id;
-		Rumtime.getInstance().log(TAG, " DownloadNotifier:" + (mNotificationId));
+		Runtime.getInstance().log(TAG, " DownloadNotifier:" + (mNotificationId));
 		mContext = context;
 		mNotificationManager = (NotificationManager) mContext
 				.getSystemService(NOTIFICATION_SERVICE);
 		try {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 				mBuilder = new NotificationCompat.Builder(mContext,
-						mChannelId = mContext.getPackageName().concat(Rumtime.getInstance().getVersion()));
+						mChannelId = mContext.getPackageName().concat(Runtime.getInstance().getVersion()));
 				NotificationChannel mNotificationChannel = new NotificationChannel(mChannelId,
-						Rumtime.getInstance().getApplicationName(context),
+						Runtime.getInstance().getApplicationName(context),
 						NotificationManager.IMPORTANCE_LOW);
 				NotificationManager mNotificationManager = (NotificationManager) mContext
 						.getSystemService(NOTIFICATION_SERVICE);
@@ -76,7 +76,7 @@ public class DownloadNotifier {
 				mBuilder = new NotificationCompat.Builder(mContext);
 			}
 		} catch (Throwable ignore) {
-			if (Rumtime.getInstance().isDebug()) {
+			if (Runtime.getInstance().isDebug()) {
 				ignore.printStackTrace();
 			}
 		}
@@ -109,7 +109,7 @@ public class DownloadNotifier {
 		intentCancel.setAction(NotificationCancelReceiver.ACTION);
 		intentCancel.putExtra("TAG", url);
 		PendingIntent pendingIntentCancel = PendingIntent.getBroadcast(context, id * 1000, intentCancel, PendingIntent.FLAG_UPDATE_CURRENT);
-		Rumtime.getInstance().log(TAG, "buildCancelContent id:" + (id * 1000));
+		Runtime.getInstance().log(TAG, "buildCancelContent id:" + (id * 1000));
 		return pendingIntentCancel;
 	}
 
@@ -204,11 +204,11 @@ public class DownloadNotifier {
 			}
 
 		} catch (Throwable ignore) {
-			if (Rumtime.getInstance().isDebug()) {
+			if (Runtime.getInstance().isDebug()) {
 				ignore.printStackTrace();
 			}
 		}
-		Intent mIntent = Rumtime.getInstance().getCommonFileIntentCompat(mContext, mDownloadTask);
+		Intent mIntent = Runtime.getInstance().getCommonFileIntentCompat(mContext, mDownloadTask);
 		setDelecte(null);
 		if (null != mIntent) {
 			if (!(mContext instanceof Activity)) {

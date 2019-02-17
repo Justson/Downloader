@@ -34,8 +34,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class DownloadTask extends Extra implements Serializable, Cloneable {
 
-	static final String TAG = Rumtime.PREFIX + DownloadTask.class.getSimpleName();
-	int mId = Rumtime.getInstance().generateGlobalId();
+	static final String TAG = Runtime.PREFIX + DownloadTask.class.getSimpleName();
+	int mId = Runtime.getInstance().generateGlobalId();
 	long mTotalsLength;
 	Context mContext;
 	File mFile;
@@ -94,7 +94,7 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
 
 	public DownloadTask setEnableIndicator(boolean enableIndicator) {
 		if (enableIndicator && mFile != null && TextUtils.isEmpty(authority)) {
-			Rumtime.getInstance().logError(TAG, " Custom file path, you must specify authority, otherwise the notification should not be turned on");
+			Runtime.getInstance().logError(TAG, " Custom file path, you must specify authority, otherwise the notification should not be turned on");
 			this.mEnableIndicator = false;
 		} else {
 			this.mEnableIndicator = enableIndicator;
@@ -122,7 +122,7 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
 	}
 
 	private void checkCustomFilePath(File file) {
-		if (file == null || file.getAbsolutePath().startsWith(Rumtime.getInstance().getDefaultDir(this.getContext()).getAbsolutePath())) {
+		if (file == null || file.getAbsolutePath().startsWith(Runtime.getInstance().getDefaultDir(this.getContext()).getAbsolutePath())) {
 			isCustomFile = false;
 		} else if (!TextUtils.isEmpty(this.authority)) {
 			setEnableIndicator(true);
@@ -317,7 +317,7 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
 	public DownloadTask clone() {
 		try {
 			DownloadTask downloadTask = (DownloadTask) super.clone();
-			downloadTask.mId = Rumtime.getInstance().generateGlobalId();
+			downloadTask.mId = Runtime.getInstance().generateGlobalId();
 			return downloadTask;
 		} catch (Throwable throwable) {
 			throwable.printStackTrace();

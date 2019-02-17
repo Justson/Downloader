@@ -39,7 +39,7 @@ public class NotificationCancelReceiver extends BroadcastReceiver {
                 String url = intent.getStringExtra("TAG");
                 ExecuteTasksMap.getInstance().cancelTask(url);
             } catch (Throwable ignore) {
-                if (Rumtime.getInstance().isDebug()) {
+                if (Runtime.getInstance().isDebug()) {
                     ignore.printStackTrace();
                 }
             }
