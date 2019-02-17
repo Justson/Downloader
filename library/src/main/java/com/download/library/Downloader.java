@@ -16,7 +16,6 @@
 
 package com.download.library;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -175,7 +174,12 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 	}
 
 	void checkIsNullTask(DownloadTask downloadTask) {
-		//todo
+		if (null == downloadTask) {
+			throw new NullPointerException("downloadTask can't be null.");
+		}
+		if (null == downloadTask.getContext()) {
+			throw new NullPointerException("downloadTask can't be null.");
+		}
 	}
 
 	@Override
@@ -671,7 +675,6 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 			}
 			ExecuteTasksMap.getInstance().addTask(downloadTask.getUrl(), this);
 		}
-		checkIsNullTask(downloadTask);
 		if (Looper.getMainLooper() != Looper.myLooper()) {
 			HANDLER.post(new Runnable() {
 				@Override
@@ -685,32 +688,41 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 		return true;
 	}
 
-
-	@SuppressLint("NewApi")
 	private void run(DownloadTask downloadTask) {
-		this.mDownloadTask = downloadTask;
-		this.mTotals = mDownloadTask.getTotalsLength();
-		mDownloadTimeOut = mDownloadTask.getDownloadTimeOut();
-		mConnectTimeOut = mDownloadTask.getConnectTimeOut();
-		enableProgress = mDownloadTask.isEnableIndicator() || null != mDownloadTask.getDownloadingListener();
-		Runtime.getInstance().log(TAG, " enableProgress:" + enableProgress);
-		if (null != mDownloadTask.getDownloadingListener()) {
-			try {
-				Annotation annotation = mDownloadTask.getDownloadingListener().getClass().getDeclaredMethod("onProgress", String.class, long.class, long.class, long.class).getAnnotation(DownloadingListener.MainThread.class);
-				mCallbackInMainThread = null != annotation;
-				Runtime.getInstance().log(TAG, " callback in main-Thread:" + mCallbackInMainThread);
-			} catch (Exception e) {
-				e.printStackTrace();
+		checkIsNullTask(downloadTask);
+		try {
+			this.mDownloadTask = downloadTask;
+			this.mTotals = mDownloadTask.getTotalsLength();
+			mDownloadTimeOut = mDownloadTask.getDownloadTimeOut();
+			mConnectTimeOut = mDownloadTask.getConnectTimeOut();
+			enableProgress = mDownloadTask.isEnableIndicator() || null != mDownloadTask.getDownloadingListener();
+			Runtime.getInstance().log(TAG, " enableProgress:" + enableProgress);
+			if (null != mDownloadTask.getDownloadingListener()) {
+				try {
+					Annotation annotation = mDownloadTask.getDownloadingListener().getClass().getDeclaredMethod("onProgress", String.class, long.class, long.class, long.class).getAnnotation(DownloadingListener.MainThread.class);
+					mCallbackInMainThread = null != annotation;
+					Runtime.getInstance().log(TAG, " callback in main-Thread:" + mCallbackInMainThread);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
-		}
-		if (downloadTask.getStatus() != STATUS_PAUSED) {
-			downloadTask.resetTime();
-		}
-		downloadTask.setStatus(DownloadTask.STATUS_PENDDING);
-		if (downloadTask.isParallelDownload()) {
-			this.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
-		} else {
-			this.executeOnExecutor(SERIAL_EXECUTOR);
+			if (downloadTask.getStatus() != STATUS_PAUSED) {
+				downloadTask.resetTime();
+			}
+			downloadTask.setStatus(DownloadTask.STATUS_PENDDING);
+			if (downloadTask.isParallelDownload()) {
+				this.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
+			} else {
+				this.executeOnExecutor(SERIAL_EXECUTOR);
+			}
+		} catch (Throwable throwable) {
+			if (null != downloadTask && !TextUtils.isEmpty(downloadTask.getUrl())) {
+				synchronized (Downloader.class) {
+					ExecuteTasksMap.getInstance().removeTask(downloadTask.getUrl());
+				}
+			}
+			throwable.printStackTrace();
+			throw throwable;
 		}
 	}
 
