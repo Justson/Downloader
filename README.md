@@ -16,6 +16,19 @@ Downloader 是一个非常轻巧以及功能强大快速下载库，只有50KB �
 * 支持进度回调
 * 支持暂停，恢复下载等操作
 
+## 下载
+```
+	allprojects {
+		repositories {
+			...
+			maven { url 'https://jitpack.io' }
+		}
+	}
+```
+
+```
+implementation 'com.github.Justson:Downloader:v4.0.3'
+```
 
 ## 例子
 
