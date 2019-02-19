@@ -18,12 +18,12 @@ Downloader 是一个非常轻巧以及功能强大快速下载库，只有50KB �
 
 ## 下载
 ```
-	allprojects {
-		repositories {
+allprojects {
+	repositories {
 			...
 			maven { url 'https://jitpack.io' }
-		}
 	}
+}
 ```
 
 ```
@@ -32,6 +32,7 @@ implementation 'com.github.Justson:Downloader:v4.0.3'
 
 ## 例子
 
+#### 同步
 ```java
 File file = DownloadImpl.getInstance()
 				.with(getApplicationContext())
@@ -39,6 +40,7 @@ File file = DownloadImpl.getInstance()
 				.get();
 ```
 
+#### 异步
 ```java
 DownloadImpl.getInstance()
                 .with(getApplicationContext())
@@ -46,5 +48,32 @@ DownloadImpl.getInstance()
                 .enqueue();
 ```
 
+#### 进度监听
 
+````
+DownloadImpl.getInstance()
+				.with(getApplicationContext())
+				.target(new File(this.getExternalCacheDir(), "com.ss.android.article.news_636.apk"))
+				.setUniquePath(false)
+				.setForceDownload(true)
+				.url("http://shouji.360tpcdn.com/170918/93d1695d87df5a0c0002058afc0361f1/com.ss.android.article.news_636.apk")
+				.enqueue(new DownloadListenerAdapter() {
+					@Override
+					public void onStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength, Extra extra) {
+						super.onStart(url, userAgent, contentDisposition, mimetype, contentLength, extra);
+					}
+
+					@Override
+					public void onProgress(String url, long downloaded, long length, long usedTime) {
+						super.onProgress(url, downloaded, length, usedTime);
+						Log.i(TAG, " progress:" + downloaded + " url:" + url);
+					}
+
+					@Override
+					public boolean onResult(Throwable throwable, Uri path, String url, Extra extra) {
+						Log.i(TAG, " path:" + path + " url:" + url + " length:" + new File(path.getPath()).length());
+						return super.onResult(throwable, path, url, extra);
+					}
+				});
+```
 

@@ -179,7 +179,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 			throw new NullPointerException("downloadTask can't be null.");
 		}
 		if (null == downloadTask.getContext()) {
-			throw new NullPointerException("downloadTask can't be null.");
+			throw new NullPointerException("context can't be null.");
 		}
 	}
 
