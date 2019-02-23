@@ -51,7 +51,7 @@ DownloadImpl.getInstance()
 #### 进度监听
 
 ```java
-DownloadImpl.getInstance()
+		DownloadImpl.getInstance()
 				.with(getApplicationContext())
 				.target(new File(this.getExternalCacheDir(), "com.ss.android.article.news_636.apk"))
 				.setUniquePath(false)
