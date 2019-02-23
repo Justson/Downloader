@@ -163,7 +163,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 		DOWNLOAD_MESSAGE.append(ERROR_SHUTDOWN, "Shutdown . ");
 		DOWNLOAD_MESSAGE.append(ERROR_TIME_OUT, "Download time is overtime . ");
 		DOWNLOAD_MESSAGE.append(ERROR_USER_CANCEL, "The user canceled the download . ");
-		DOWNLOAD_MESSAGE.append(ERROR_RESOURCE_NOT_FOUND, "Resouce not found . ");
+		DOWNLOAD_MESSAGE.append(ERROR_RESOURCE_NOT_FOUND, "Resource not found . ");
 		DOWNLOAD_MESSAGE.append(ERROR_USER_PAUSE, "paused . ");
 		DOWNLOAD_MESSAGE.append(ERROR_LOAD, "IO Error . ");
 		DOWNLOAD_MESSAGE.append(ERROR_SERVICE, "Service Unavailable . ");

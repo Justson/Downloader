@@ -23,10 +23,10 @@ import android.content.Context;
  * @since 1.0.0
  */
 public interface StorageEngine {
+
 	void save(String key, String value);
 
 	String get(String key, String defaultValue);
-
 
 	public interface StorageEngineFactory {
 		StorageEngine newStoraEngine(Context context);
