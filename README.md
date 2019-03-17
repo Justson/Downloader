@@ -49,7 +49,6 @@ DownloadImpl.getInstance()
 ```
 
 #### 进度监听
-
 ```java
 		DownloadImpl.getInstance()
 				.with(getApplicationContext())
