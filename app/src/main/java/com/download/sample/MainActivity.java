@@ -118,11 +118,16 @@ public class MainActivity extends AppCompatActivity {
 
 		/*DownloadImpl.getInstance()
 				.with(getApplicationContext())
-				.target(new File(this.getExternalCacheDir(), "测试22.apk"))
+				.target(new File(this.getExternalCacheDir(), "com.ss.android.article.news_636.apk"))
 				.setUniquePath(false)
 				.setForceDownload(true)
 				.url("http://shouji.360tpcdn.com/170918/93d1695d87df5a0c0002058afc0361f1/com.ss.android.article.news_636.apk")
 				.enqueue(new DownloadListenerAdapter() {
+					@Override
+					public void onStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength, Extra extra) {
+						super.onStart(url, userAgent, contentDisposition, mimetype, contentLength, extra);
+					}
+
 					@Override
 					public void onProgress(String url, long downloaded, long length, long usedTime) {
 						super.onProgress(url, downloaded, length, usedTime);
@@ -134,8 +139,7 @@ public class MainActivity extends AppCompatActivity {
 						Log.i(TAG, " path:" + path + " url:" + url + " length:" + new File(path.getPath()).length());
 						return super.onResult(throwable, path, url, extra);
 					}
-				});
-*/
+				});*/
 //		run2();
 	}
 

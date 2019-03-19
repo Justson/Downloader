@@ -163,7 +163,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 		DOWNLOAD_MESSAGE.append(ERROR_SHUTDOWN, "Shutdown . ");
 		DOWNLOAD_MESSAGE.append(ERROR_TIME_OUT, "Download time is overtime . ");
 		DOWNLOAD_MESSAGE.append(ERROR_USER_CANCEL, "The user canceled the download . ");
-		DOWNLOAD_MESSAGE.append(ERROR_RESOURCE_NOT_FOUND, "Resouce not found . ");
+		DOWNLOAD_MESSAGE.append(ERROR_RESOURCE_NOT_FOUND, "Resource not found . ");
 		DOWNLOAD_MESSAGE.append(ERROR_USER_PAUSE, "paused . ");
 		DOWNLOAD_MESSAGE.append(ERROR_LOAD, "IO Error . ");
 		DOWNLOAD_MESSAGE.append(ERROR_SERVICE, "Service Unavailable . ");
@@ -179,7 +179,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 			throw new NullPointerException("downloadTask can't be null.");
 		}
 		if (null == downloadTask.getContext()) {
-			throw new NullPointerException("downloadTask can't be null.");
+			throw new NullPointerException("context can't be null.");
 		}
 	}
 
@@ -254,7 +254,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 	protected Integer doInBackground(Void... params) {
 		int result = ERROR_LOAD;
 		String name = Thread.currentThread().getName();
-		Thread.currentThread().setName("pool-agentweb-thread-" + Runtime.getInstance().generateGlobalThreadId());
+		Thread.currentThread().setName("pool-download-thread-" + Runtime.getInstance().generateGlobalThreadId());
 		try {
 			this.mBeginTime = SystemClock.elapsedRealtime();
 			if (!checkNet()) {
