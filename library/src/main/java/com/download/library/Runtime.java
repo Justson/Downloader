@@ -211,7 +211,7 @@ public final class Runtime {
 
     public File getDir(Context context, boolean isPublic) {
         File file = (mDownloadDir == null || !mDownloadDir.isDirectory()) ? context.getCacheDir() : mDownloadDir;
-        file = new File(file, "download" + File.separator + (isPublic ? "public" : "privite"));
+        file = new File(file, "download" + File.separator + (isPublic ? "public" : "private"));
         if (!file.exists()) {
             file.mkdirs();
         }
