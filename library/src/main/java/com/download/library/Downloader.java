@@ -408,7 +408,6 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
     private final void start(HttpURLConnection httpURLConnection) throws IOException {
         DownloadTask downloadTask = this.mDownloadTask;
         if (TextUtils.isEmpty(downloadTask.getContentDisposition())) {
-            Runtime.getInstance().log(TAG, "response headers:" + httpURLConnection.getHeaderFields());
             downloadTask.setContentDisposition(httpURLConnection.getHeaderField("Content-Disposition"));
             String fileName = Runtime.getInstance().getFileNameByContentDisposition(downloadTask.getContentDisposition());
             Runtime.getInstance().log(TAG, " ContentDisposition file name:" + fileName + "  file:" + downloadTask.getFile().getName() + " getContentDisposition:" + downloadTask.getContentDisposition());
@@ -551,7 +550,6 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
         DownloadTask downloadTask = this.mDownloadTask;
         try {
             long currentTime = SystemClock.elapsedRealtime();
-//            Runtime.getInstance().log(TAG, " currentTime:" + currentTime + " values:" + values);
             this.mUsedTime = currentTime - this.mBeginTime;
             if (mUsedTime == 0) {
                 this.mAverageSpeed = 0;
@@ -601,7 +599,6 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
             } else {
                 downloadTask.completed();
             }
-            Runtime.getInstance().log(TAG, "onPostExecute:" + DOWNLOAD_MESSAGE.get(integer));
             downloadTask.setStatus(DownloadTask.STATUS_COMPLETED);
             boolean isCancelDispose = doCallback(integer);
             // Error
