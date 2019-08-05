@@ -286,11 +286,13 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 				}
 				if (downloadTask.connectTimes <= 0) {
 					httpURLConnection = createUrlConnection(url);
-					httpURLConnection.connect();
+                    settingHeaders(downloadTask, httpURLConnection);
+                    httpURLConnection.connect();
 				} else {
 					httpURLConnection = createUrlConnection(url);
-					settingHeaders(downloadTask, httpURLConnection);
-					httpURLConnection.connect();
+                    settingHeaders(downloadTask, httpURLConnection);
+                    httpURLConnection.setRequestProperty("Connection", "close");
+                    httpURLConnection.connect();
 				}
 
 				final boolean isEncodingChunked = "chunked".equalsIgnoreCase(
@@ -517,7 +519,6 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 			}
 			httpURLConnection.setRequestProperty("Range", "bytes=" + (mLastLoaded = downloadTask.getFile().length()) + "-");
 		}
-		httpURLConnection.setRequestProperty("Connection", "close");
 		Runtime.getInstance().log(TAG, "settingHeaders");
 	}
 
@@ -818,7 +819,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 				return;
 			}
 			long currentTime = SystemClock.elapsedRealtime();
-			if (currentTime - mLastTime < 450) {
+			if (currentTime - mLastTime < 1200) {
 				return;
 			}
 			mLastTime = currentTime;
