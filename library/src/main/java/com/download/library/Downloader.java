@@ -107,7 +107,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
     /**
      * 连接超时
      */
-    protected int mConnectTimeOut = 10000;
+    protected long mConnectTimeOut = 10000L;
     /**
      * 通知
      */
@@ -147,6 +147,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
     public static final int ERROR_TOO_MANY_REDIRECTS = 0x408;
     public static final int ERROR_LOAD = 0x409;
     public static final int ERROR_RESOURCE_NOT_FOUND = 0x410;
+    public static final int ERROR_MD5 = 0x411;
     public static final int ERROR_SERVICE = 0x503;
     public static final int SUCCESSFUL = 0x200;
     public static final int HTTP_RANGE_NOT_SATISFIABLE = 416;
@@ -169,6 +170,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
         DOWNLOAD_MESSAGE.append(ERROR_LOAD, "IO Error . ");
         DOWNLOAD_MESSAGE.append(ERROR_SERVICE, "Service Unavailable . ");
         DOWNLOAD_MESSAGE.append(ERROR_TOO_MANY_REDIRECTS, "Too many redirects . ");
+        DOWNLOAD_MESSAGE.append(ERROR_MD5, "Md5 check fails . ");
         DOWNLOAD_MESSAGE.append(SUCCESSFUL, "Download successful . ");
     }
 
@@ -255,18 +257,30 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
     protected Integer doInBackground(Void... params) {
         int result = ERROR_LOAD;
         String name = Thread.currentThread().getName();
+        this.mBeginTime = SystemClock.elapsedRealtime();
+        if (!checkNet()) {
+            Runtime.getInstance().logError(TAG, " Network error,isForceDownload:" + mDownloadTask.isForceDownload());
+            return ERROR_NETWORK_CONNECTION;
+        }
+        DownloadTask downloadTask = mDownloadTask;
         Thread.currentThread().setName("pool-download-thread-" + Runtime.getInstance().generateGlobalThreadId());
         try {
-            this.mBeginTime = SystemClock.elapsedRealtime();
-            if (!checkNet()) {
-                Runtime.getInstance().logError(TAG, " Network error,isForceDownload:" + mDownloadTask.isForceDownload());
-                return ERROR_NETWORK_CONNECTION;
-            }
-            result = doDownload();
-        } catch (IOException e) {
-            this.mThrowable = e;
-            if (Runtime.getInstance().isDebug()) {
-                e.printStackTrace();
+            IOException ioException = null;
+            for (int i = 0; i <= downloadTask.retry; i++) {
+                try {
+                    result = doDownload();
+                } catch (IOException e) {
+                    this.mThrowable = ioException = e;
+                    if (Runtime.getInstance().isDebug()) {
+                        e.printStackTrace();
+                    }
+                }
+                if (ioException == null) {
+                    break;
+                }
+                if (i + 1 <= downloadTask.retry) {
+                    Runtime.getInstance().logError(TAG, "download error , retry " + (i + 1));
+                }
             }
         } finally {
             Thread.currentThread().setName(name);
@@ -417,6 +431,14 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
         if (TextUtils.isEmpty(downloadTask.getMimetype())) {
             downloadTask.setMimetype(httpURLConnection.getHeaderField("Content-Type"));
         }
+
+        if (TextUtils.isEmpty(downloadTask.getUserAgent())) {
+            String ua = httpURLConnection.getHeaderField("User-Agent");
+            if (ua == null) {
+                ua = "";
+            }
+            downloadTask.setUserAgent(ua);
+        }
         downloadTask.setContentLength(getHeaderFieldLong(httpURLConnection, "Content-Length"));
         onStart();
     }
@@ -493,9 +515,9 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
     private HttpURLConnection createUrlConnection(URL url) throws IOException {
         DownloadTask downloadTask = this.mDownloadTask;
         HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-        httpURLConnection.setConnectTimeout(mConnectTimeOut);
+        httpURLConnection.setConnectTimeout((int) mConnectTimeOut);
         httpURLConnection.setInstanceFollowRedirects(false);
-        httpURLConnection.setReadTimeout(downloadTask.getBlockMaxTime());
+        httpURLConnection.setReadTimeout((int) downloadTask.getBlockMaxTime());
         httpURLConnection.setRequestProperty("Accept", "*/*");
         httpURLConnection.setRequestProperty("Accept-Encoding", "deflate,gzip");
         return httpURLConnection;
@@ -529,7 +551,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
         DownloadTask downloadTask = this.mDownloadTask;
         try {
             long currentTime = SystemClock.elapsedRealtime();
-//			Runtime.getInstance().log(TAG, " currentTime:" + currentTime);
+//            Runtime.getInstance().log(TAG, " currentTime:" + currentTime + " values:" + values);
             this.mUsedTime = currentTime - this.mBeginTime;
             if (mUsedTime == 0) {
                 this.mAverageSpeed = 0;
@@ -642,7 +664,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
             this.mThrowable.printStackTrace();
         }
         return mDownloadListener.onResult(code <= SUCCESSFUL ? null
-                        : new DownloadException(code, "Download failed ， cause:" + DOWNLOAD_MESSAGE.get(code)), downloadTask.getFileUri(),
+                        : new DownloadException(code, "failed ， cause:" + DOWNLOAD_MESSAGE.get(code)), downloadTask.getFileUri(),
                 downloadTask.getUrl(), mDownloadTask);
     }
 
@@ -661,6 +683,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
         byte[] buffer = new byte[BUFFER_SIZE];
         BufferedInputStream bis = new BufferedInputStream(inputStream, BUFFER_SIZE);
         RandomAccessFile out = randomAccessFile;
+        DownloadTask downloadTask = mDownloadTask;
         try {
             if (isSeek) {
                 out.seek(out.length());
@@ -688,6 +711,13 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
             }
             if (mIsShutdown.get()) {
                 return ERROR_SHUTDOWN;
+            }
+            if (!TextUtils.isEmpty(downloadTask.getTargetCompareMD5())) {
+                String md5 = Runtime.getInstance().md5(mDownloadTask.mFile);
+                mDownloadTask.setFileMD5(md5);
+                if (!downloadTask.getTargetCompareMD5().equalsIgnoreCase(downloadTask.getFileMD5())) {
+                    return ERROR_MD5;
+                }
             }
             return SUCCESSFUL;
         } finally {
@@ -757,7 +787,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
             mConnectTimeOut = mDownloadTask.getConnectTimeOut();
             quickProgress = mDownloadTask.isQuickProgress();
             enableProgress = mDownloadTask.isEnableIndicator() || null != mDownloadTask.getDownloadingListener();
-            Runtime.getInstance().log(TAG, " enableProgress:" + enableProgress);
+            Runtime.getInstance().log(TAG, " enableProgress:" + enableProgress + " quickProgress:" + quickProgress);
             if (null != mDownloadTask.getDownloadingListener()) {
                 try {
                     Annotation annotation = mDownloadTask.getDownloadingListener().getClass().getDeclaredMethod("onProgress", String.class, long.class, long.class, long.class).getAnnotation(DownloadingListener.MainThread.class);

@@ -30,6 +30,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -110,7 +111,7 @@ public final class Runtime {
                 .setDownloadTimeOut(Long.MAX_VALUE)
                 .setParallelDownload(true)
                 .setEnableIndicator(false)
-                .setAutoOpen(false)
+                .closeAutoOpen()
                 .setForceDownload(true);
     }
 
@@ -272,6 +273,32 @@ public final class Runtime {
             }
         }
         return "";
+    }
+
+    public String md5(File file) {
+        MessageDigest digest = null;
+        FileInputStream fis = null;
+        byte[] buffer = new byte[1024];
+        try {
+            if (!file.isFile()) {
+                return "";
+            }
+            digest = MessageDigest.getInstance("MD5");
+            fis = new FileInputStream(file);
+            while (true) {
+                int len;
+                if ((len = fis.read(buffer, 0, 1024)) == -1) {
+                    fis.close();
+                    break;
+                }
+                digest.update(buffer, 0, len);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+        BigInteger bigInteger = new BigInteger(1, digest.digest());
+        return String.format("%1$032x", new Object[]{bigInteger});
     }
 
     public String getApplicationName(Context context) {

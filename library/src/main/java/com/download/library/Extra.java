@@ -70,7 +70,7 @@ public class Extra implements Serializable, Cloneable {
     /**
      * UA
      */
-    protected String mUserAgent;
+    protected String mUserAgent = "";
     /**
      * Header
      */
@@ -86,16 +86,28 @@ public class Extra implements Serializable, Cloneable {
     /**
      * 连接超时， 默认10s
      */
-    protected int connectTimeOut = 10 * 1000;
+    protected long connectTimeOut = 10L * 1000L;
     /**
      * 以8KB位单位，默认60s ，如果60s内无法从网络流中读满8KB数据，则抛出异常 。
      */
-    protected int blockMaxTime = 10 * 60 * 1000;
+    protected long blockMaxTime = 10L * 60L * 1000L;
 
     /**
      * 快速回调进度,默认1200毫秒回调一次
      */
     protected boolean quickProgress = false;
+    /**
+     * 文件md5值，当targetCompareMD5与fileMD5一致时执行auto open
+     */
+    protected String targetCompareMD5 = "";
+    /**
+     * 文件md5值，当targetCompareMD5与fileMD5一致时执行auto open
+     */
+    protected String fileMD5 = "";
+    /**
+     * 下载失败重试次数
+     */
+    protected int retry = 3;
 
     public Map<String, String> getHeaders() {
         return mHeaders;
@@ -105,7 +117,7 @@ public class Extra implements Serializable, Cloneable {
 
     }
 
-    public int getBlockMaxTime() {
+    public long getBlockMaxTime() {
         return blockMaxTime;
     }
 
@@ -141,7 +153,7 @@ public class Extra implements Serializable, Cloneable {
         return downloadTimeOut;
     }
 
-    public int getConnectTimeOut() {
+    public long getConnectTimeOut() {
         return connectTimeOut;
     }
 
@@ -167,6 +179,18 @@ public class Extra implements Serializable, Cloneable {
 
     public int getDownloadDoneIcon() {
         return mDownloadDoneIcon;
+    }
+
+    public String getTargetCompareMD5() {
+        return targetCompareMD5 == null ? "" : targetCompareMD5;
+    }
+
+    public String getFileMD5() {
+        return fileMD5;
+    }
+
+    public int getRetry() {
+        return retry;
     }
 
     @Override
