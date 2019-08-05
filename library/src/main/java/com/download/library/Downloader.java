@@ -661,7 +661,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
             this.mThrowable.printStackTrace();
         }
         return mDownloadListener.onResult(code <= SUCCESSFUL ? null
-                        : new DownloadException(code, "failed ， cause:" + DOWNLOAD_MESSAGE.get(code)), downloadTask.getFileUri(),
+                        : new DownloadException(code, "failed , cause:" + DOWNLOAD_MESSAGE.get(code)), downloadTask.getFileUri(),
                 downloadTask.getUrl(), mDownloadTask);
     }
 
