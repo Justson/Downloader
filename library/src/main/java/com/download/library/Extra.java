@@ -28,145 +28,154 @@ import java.util.Map;
  */
 public class Extra implements Serializable, Cloneable {
 
-	/**
-	 * 强制下载
-	 */
-	protected boolean mIsForceDownload = false;
-	/**
-	 * 显示系统通知
-	 */
-	protected boolean mEnableIndicator = true;
-	/**
-	 * 通知icon
-	 */
-	@DrawableRes
-	protected int mDownloadIcon = android.R.drawable.stat_sys_download;
-	@DrawableRes
-	protected int mDownloadDoneIcon = android.R.drawable.stat_sys_download_done;
-	/**
-	 * 并行下载
-	 */
-	protected boolean mIsParallelDownload = true;
-	/**
-	 * 断点续传，分块传输该字段无效
-	 */
-	protected boolean mIsBreakPointDownload = true;
-	/**
-	 * 当前下载链接
-	 */
-	protected String mUrl;
-	/**
-	 * ContentDisposition ，提取文件名 ，如果ContentDisposition不指定文件名，则从url中提取文件名
-	 */
-	protected String mContentDisposition;
-	/**
-	 * 文件大小
-	 */
-	protected long mContentLength;
-	/**
-	 * 文件类型
-	 */
-	protected String mMimetype;
-	/**
-	 * UA
-	 */
-	protected String mUserAgent;
-	/**
-	 * Header
-	 */
-	protected Map<String, String> mHeaders;
-	/**
-	 * 下载文件完成，是否自动打开该文件
-	 */
-	protected boolean mAutoOpen = false;
-	/**
-	 * 超时时长默认为两小时
-	 */
-	protected long downloadTimeOut = Long.MAX_VALUE;
-	/**
-	 * 连接超时， 默认10s
-	 */
-	protected int connectTimeOut = 10 * 1000;
-	/**
-	 * 以8KB位单位，默认60s ，如果60s内无法从网络流中读满8KB数据，则抛出异常 。
-	 */
-	protected int blockMaxTime = 10 * 60 * 1000;
+    /**
+     * 强制下载
+     */
+    protected boolean mIsForceDownload = false;
+    /**
+     * 显示系统通知
+     */
+    protected boolean mEnableIndicator = true;
+    /**
+     * 通知icon
+     */
+    @DrawableRes
+    protected int mDownloadIcon = android.R.drawable.stat_sys_download;
+    @DrawableRes
+    protected int mDownloadDoneIcon = android.R.drawable.stat_sys_download_done;
+    /**
+     * 并行下载
+     */
+    protected boolean mIsParallelDownload = true;
+    /**
+     * 断点续传，分块传输该字段无效
+     */
+    protected boolean mIsBreakPointDownload = true;
+    /**
+     * 当前下载链接
+     */
+    protected String mUrl;
+    /**
+     * ContentDisposition ，提取文件名 ，如果ContentDisposition不指定文件名，则从url中提取文件名
+     */
+    protected String mContentDisposition;
+    /**
+     * 文件大小
+     */
+    protected long mContentLength;
+    /**
+     * 文件类型
+     */
+    protected String mMimetype;
+    /**
+     * UA
+     */
+    protected String mUserAgent;
+    /**
+     * Header
+     */
+    protected Map<String, String> mHeaders;
+    /**
+     * 下载文件完成，是否自动打开该文件
+     */
+    protected boolean mAutoOpen = false;
+    /**
+     * 超时时长默认为两小时
+     */
+    protected long downloadTimeOut = Long.MAX_VALUE;
+    /**
+     * 连接超时， 默认10s
+     */
+    protected int connectTimeOut = 10 * 1000;
+    /**
+     * 以8KB位单位，默认60s ，如果60s内无法从网络流中读满8KB数据，则抛出异常 。
+     */
+    protected int blockMaxTime = 10 * 60 * 1000;
 
-	public Map<String, String> getHeaders() {
-		return mHeaders;
-	}
+    /**
+     * 快速回调进度,默认1200毫秒回调一次
+     */
+    protected boolean quickProgress = false;
 
-	protected Extra() {
+    public Map<String, String> getHeaders() {
+        return mHeaders;
+    }
 
-	}
+    protected Extra() {
 
-	public int getBlockMaxTime() {
-		return blockMaxTime;
-	}
+    }
 
-	public String getUrl() {
-		return mUrl;
-	}
+    public int getBlockMaxTime() {
+        return blockMaxTime;
+    }
 
-	public String getUserAgent() {
-		return mUserAgent;
-	}
+    public String getUrl() {
+        return mUrl;
+    }
 
-	public String getContentDisposition() {
-		return mContentDisposition;
-	}
+    public String getUserAgent() {
+        return mUserAgent;
+    }
 
-	public String getMimetype() {
-		return mMimetype;
-	}
+    public String getContentDisposition() {
+        return mContentDisposition;
+    }
 
-	public long getContentLength() {
-		return mContentLength;
-	}
+    public String getMimetype() {
+        return mMimetype;
+    }
 
-	public boolean isForceDownload() {
-		return mIsForceDownload;
-	}
+    public long getContentLength() {
+        return mContentLength;
+    }
 
-	public boolean isEnableIndicator() {
-		return mEnableIndicator;
-	}
+    public boolean isForceDownload() {
+        return mIsForceDownload;
+    }
 
-	public long getDownloadTimeOut() {
-		return downloadTimeOut;
-	}
+    public boolean isEnableIndicator() {
+        return mEnableIndicator;
+    }
 
-	public int getConnectTimeOut() {
-		return connectTimeOut;
-	}
+    public long getDownloadTimeOut() {
+        return downloadTimeOut;
+    }
 
-	public int getDownloadIcon() {
-		return mDownloadIcon;
-	}
+    public int getConnectTimeOut() {
+        return connectTimeOut;
+    }
 
-	public boolean isParallelDownload() {
-		return mIsParallelDownload;
-	}
+    public int getDownloadIcon() {
+        return mDownloadIcon;
+    }
 
-	public boolean isBreakPointDownload() {
-		return mIsBreakPointDownload;
-	}
+    public boolean isParallelDownload() {
+        return mIsParallelDownload;
+    }
 
-	public boolean isAutoOpen() {
-		return mAutoOpen;
-	}
+    public boolean isBreakPointDownload() {
+        return mIsBreakPointDownload;
+    }
 
-	public int getDownloadDoneIcon() {
-		return mDownloadDoneIcon;
-	}
+    public boolean isAutoOpen() {
+        return mAutoOpen;
+    }
 
-	@Override
-	protected Object clone() {
-		try {
-			return super.clone();
-		} catch (CloneNotSupportedException e) {
-			e.printStackTrace();
-		}
-		return new Extra();
-	}
+    public boolean isQuickProgress() {
+        return quickProgress;
+    }
+
+    public int getDownloadDoneIcon() {
+        return mDownloadDoneIcon;
+    }
+
+    @Override
+    protected Object clone() {
+        try {
+            return super.clone();
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+        return new Extra();
+    }
 }

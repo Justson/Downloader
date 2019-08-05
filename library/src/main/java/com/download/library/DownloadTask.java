@@ -315,6 +315,15 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
 	}
 
 	@Override
+	public boolean isQuickProgress() {
+		return super.isQuickProgress();
+	}
+
+	public void setQuickProgress(boolean quickProgress) {
+		this.quickProgress = quickProgress;
+	}
+
+	@Override
 	public DownloadTask clone() {
 		try {
 			DownloadTask downloadTask = (DownloadTask) super.clone();
