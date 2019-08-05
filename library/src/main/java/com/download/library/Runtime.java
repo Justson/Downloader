@@ -211,7 +211,7 @@ public final class Runtime {
 
     public File getDir(Context context, boolean isPublic) {
         File file = (mDownloadDir == null || !mDownloadDir.isDirectory()) ? context.getCacheDir() : mDownloadDir;
-        file = new File(file, "download" + File.separator + (isPublic ? "public" : "privite"));
+        file = new File(file, "download" + File.separator + (isPublic ? "public" : "private"));
         if (!file.exists()) {
             file.mkdirs();
         }
@@ -335,7 +335,7 @@ public final class Runtime {
         String fName = f.getName();
         String end = fName.substring(fName.lastIndexOf(".") + 1, fName.length()).toLowerCase();
         if (end.equals("pdf")) {
-            type = "application/pdf";//
+            type = "application/pdf";
         } else if (end.equals("m4a") || end.equals("mp3") || end.equals("mid") ||
                 end.equals("xmf") || end.equals("ogg") || end.equals("wav")) {
             type = "audio/*";
