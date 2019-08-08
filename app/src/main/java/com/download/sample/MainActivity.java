@@ -440,6 +440,13 @@ public class MainActivity extends AppCompatActivity {
         downloadBean.autoOpenIgnoreMD5();
         mDownloadTasks.add(downloadBean);
 
+
+        downloadBean = new DownloadBean("直播", "http://p15.qhimg.com/dr/72__/t011cd515c7c9390202.png", "https://a46fefcd092f5f917ed1ee349b85d3b7.dd.cdntips.com/wxz.myapp.com/16891/F9B7FA7EC195FC453AE9082F826E6B28.apk?mkey=5d4c6bdc78e5058d&f=1806&fsname=com.tiange.hz.paopao8_4.4.1_441.apk&hsr=4d5s&cip=120.229.35.120&proto=https");
+        downloadBean.setContext(this.getApplicationContext());
+        downloadBean.autoOpenIgnoreMD5().setQuickProgress(true);
+        mDownloadTasks.add(downloadBean);
+
+        //
     }
 
     public static int dp2px(Context context, float dpValue) {
