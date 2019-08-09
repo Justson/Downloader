@@ -136,6 +136,7 @@ public class MainActivity extends AppCompatActivity {
                 .setOpenBreakPointDownload(true)//打开断点续传
                 .setParallelDownload(true)//打开多线程下载
                 .autoOpenWithMD5("93d1695d87df5a0c0002058afc0361f1")//校验md5通过后自动打开该文件,校验失败会回调异常
+//                .autoOpenIgnoreMD5()
 //                .closeAutoOpen()
                 .quickProgress()//快速连续回调进度，默认1.2s回调一次
                 .url("http://shouji.360tpcdn.com/170918/93d1695d87df5a0c0002058afc0361f1/com.ss.android.article.news_636.apk")
