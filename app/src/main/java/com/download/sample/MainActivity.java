@@ -80,8 +80,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 *//**
-                 * 文件同步下载
-                 *//*
+         * 文件同步下载
+         *//*
                 File file = DownloadImpl.getInstance()
 		                .with(getApplicationContext())
 		                .target(new File(getCacheDir(),"t01a16bcd9acd07d029.png"))
@@ -136,6 +136,7 @@ public class MainActivity extends AppCompatActivity {
                 .setOpenBreakPointDownload(true)//打开断点续传
                 .setParallelDownload(true)//打开多线程下载
                 .autoOpenWithMD5("93d1695d87df5a0c0002058afc0361f1")//校验md5通过后自动打开该文件,校验失败会回调异常
+//                .closeAutoOpen()
                 .quickProgress()//快速连续回调进度，默认1.2s回调一次
                 .url("http://shouji.360tpcdn.com/170918/93d1695d87df5a0c0002058afc0361f1/com.ss.android.article.news_636.apk")
                 .enqueue(new DownloadListenerAdapter() {
@@ -354,6 +355,41 @@ public class MainActivity extends AppCompatActivity {
             this.title = title;
             this.imageUrl = imageUrl;
             this.mUrl = url;
+        }
+
+        @Override
+        protected DownloadBean setDownloadListenerAdapter(DownloadListenerAdapter downloadListenerAdapter) {
+            return (DownloadBean) super.setDownloadListenerAdapter(downloadListenerAdapter);
+        }
+
+        @Override
+        public DownloadBean setUrl(String url) {
+            return (DownloadBean) super.setUrl(url);
+        }
+
+        @Override
+        public DownloadBean setContext(Context context) {
+            return (DownloadBean) super.setContext(context);
+        }
+
+        @Override
+        public DownloadBean setEnableIndicator(boolean enableIndicator) {
+            return (DownloadBean) super.setEnableIndicator(enableIndicator);
+        }
+
+        @Override
+        public DownloadBean setRetry(int retry) {
+            return (DownloadBean) super.setRetry(retry);
+        }
+
+        @Override
+        public DownloadBean setQuickProgress(boolean quickProgress) {
+            return (DownloadBean) super.setQuickProgress(quickProgress);
+        }
+
+        @Override
+        public DownloadBean autoOpenIgnoreMD5() {
+            return (DownloadBean) super.autoOpenIgnoreMD5();
         }
     }
 
