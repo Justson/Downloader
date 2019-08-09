@@ -111,6 +111,7 @@ public final class Runtime {
 
 	public void setFileComparatorFactory(FileComparator.FileComparatorFactory fileComparatorFactory) {
 		this.mFileComparatorFactory = fileComparatorFactory;
+		this.mFileComparator = null;
 	}
 
 	public void setStorageEngineFactory(StorageEngine.StorageEngineFactory storageEngineFactory) {
