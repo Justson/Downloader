@@ -8,7 +8,7 @@ android {
     buildToolsVersion BUILD_TOOL_VERSION
 
     defaultConfig {
-        minSdkVersion 16
+        minSdkVersion 14
         targetSdkVersion TARGET_SDK_VERSION.toInteger()
         versionCode 1
         versionName "1.0"
@@ -22,9 +22,13 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
     lintOptions{
         abortOnError false
+    }
+    repositories {
+        flatDir {
+            dirs 'libs', 'providedLibs'
+        }
     }
 }
 
@@ -35,38 +39,22 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     testCompile 'junit:junit:4.12'
-    provided "com.android.support:design:${SUPPORT_LIB_VERSION}"
-    provided "com.android.support:support-v4:${SUPPORT_LIB_VERSION}"
+    compileOnly "com.android.support:design:${SUPPORT_LIB_VERSION}"
+    compileOnly "com.android.support:support-v4:${SUPPORT_LIB_VERSION}"
 }
-task javadoc(type: Javadoc) {
-    options.encoding = "utf-8"
-}
+//task javadoc(type: Javadoc) {
+//    options.encoding = "utf-8"
+//}
+
 publish {
     def groupProjectID = 'com.download.library'
-    def artifactProjectID = 'download'
-    def publishVersionID = '4.0.3-alpha-2'
-
+    def artifactProjectID = 'Downloader'
+    def publishVersionID = '4.1.1'
     userOrg = 'just'
-    repoName = 'maven'
     groupId = groupProjectID
     artifactId = artifactProjectID
     publishVersion = publishVersionID
-    desc = 'very easy to download you file'
+    desc = 'Downloader is a lightweight powerful Android file download library'
     website = 'https://github.com/Justson/Downloader'
 
-    publishing {
-        publications {
-            MyPub(MavenPublication) {
-                groupId groupProjectID
-                artifactId artifactProjectID
-                version publishVersionID
-
-                //don't forget to add bundleRelease
-                artifact bundleReleaseAar
-
-            }
-        }
-    }
-    publications = ['MyPub']
 }
-
