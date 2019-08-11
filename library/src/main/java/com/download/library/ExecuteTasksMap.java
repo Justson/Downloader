@@ -52,7 +52,10 @@ public final class ExecuteTasksMap {
 	DownloadTask pauseTask(String url) {
 		ExecuteTask mExecuteTask = mTasks.get(url);
 		if (null != mExecuteTask) {
-			return mExecuteTask.pauseDownload();
+			DownloadTask downloadTask = mExecuteTask.getDownloadTask();
+			if (null != downloadTask && downloadTask.getStatus() == DownloadTask.STATUS_DOWNLOADING) {
+				return mExecuteTask.pauseDownload();
+			}
 		}
 		return null;
 	}

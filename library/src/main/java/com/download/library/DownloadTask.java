@@ -26,7 +26,6 @@ import android.text.TextUtils;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author cenxiaozhong
@@ -34,376 +33,395 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class DownloadTask extends Extra implements Serializable, Cloneable {
 
-    static final String TAG = Runtime.PREFIX + DownloadTask.class.getSimpleName();
-    int mId = Runtime.getInstance().generateGlobalId();
-    long mTotalsLength;
-    protected Context mContext;
-    protected File mFile;
-    protected DownloadListener mDownloadListener;
-    protected DownloadingListener mDownloadingListener;
-    protected String authority = "";
-    public static final int STATUS_NEW = 1000;
-    public static final int STATUS_PENDDING = 1001;
-    public static final int STATUS_DOWNLOADING = 1002;
-    public static final int STATUS_PAUSED = 1003;
-    public static final int STATUS_COMPLETED = 1004;
-    long beginTime = 0L;
-    long pauseTime = 0L;
-    long endTime = 0L;
-    long detalTime = 0L;
-    boolean isCustomFile = false;
-    boolean uniquePath = true;
-    int connectTimes = 0;
+	static final String TAG = Runtime.PREFIX + DownloadTask.class.getSimpleName();
+	int mId = Runtime.getInstance().generateGlobalId();
+	long mTotalsLength;
+	protected Context mContext;
+	protected File mFile;
+	protected DownloadListener mDownloadListener;
+	protected DownloadingListener mDownloadingListener;
+	protected String authority = "";
+	public static final int STATUS_NEW = 1000;
+	public static final int STATUS_PENDDING = 1001;
+	public static final int STATUS_DOWNLOADING = 1002;
+	public static final int STATUS_PAUSED = 1003;
+	public static final int STATUS_COMPLETED = 1004;
+	public static final int STATUS_CANCELED = 1005;
+	public static final int STATUS_ERROR = 1006;
 
-    void resetConnectTimes() {
-        connectTimes = 0;
-    }
+	long beginTime = 0L;
+	long pauseTime = 0L;
+	long endTime = 0L;
+	long detalTime = 0L;
+	boolean isCustomFile = false;
+	boolean uniquePath = true;
+	int connectTimes = 0;
+	volatile long loaded = 0L;
 
-    @IntDef({STATUS_NEW, STATUS_PENDDING, STATUS_DOWNLOADING, STATUS_PAUSED, STATUS_COMPLETED})
-    @interface DownloadTaskStatus {
-    }
+	void resetConnectTimes() {
+		connectTimes = 0;
+	}
 
-    private AtomicInteger status = new AtomicInteger(STATUS_NEW);
+	@IntDef({STATUS_NEW, STATUS_PENDDING, STATUS_DOWNLOADING, STATUS_PAUSED, STATUS_COMPLETED, STATUS_CANCELED, STATUS_ERROR})
+	@interface DownloadTaskStatus {
+	}
 
-    public DownloadTask() {
-        super();
-    }
+	private volatile int status = STATUS_NEW;
 
-    public int getStatus() {
-        return status.get();
-    }
+	public DownloadTask() {
+		super();
+	}
 
-    void setStatus(@DownloadTaskStatus int status) {
-        this.status.set(status);
-    }
+	public synchronized int getStatus() {
+		return status;
+	}
 
-    void resetTime() {
-        beginTime = 0L;
-        pauseTime = 0L;
-        endTime = 0L;
-        detalTime = 0L;
-    }
+	synchronized void setStatus(@DownloadTaskStatus int status) {
+		this.status = status;
+	}
 
-    public int getId() {
-        return this.mId;
-    }
+	void resetTime() {
+		beginTime = 0L;
+		pauseTime = 0L;
+		endTime = 0L;
+		detalTime = 0L;
+	}
 
-    public Context getContext() {
-        return mContext;
-    }
+	public int getId() {
+		return this.mId;
+	}
 
-    protected DownloadTask setContext(Context context) {
-        mContext = context.getApplicationContext();
-        return this;
-    }
+	public Context getContext() {
+		return mContext;
+	}
 
-    protected DownloadTask setEnableIndicator(boolean enableIndicator) {
-        if (enableIndicator && mFile != null && TextUtils.isEmpty(authority)) {
-            Runtime.getInstance().logError(TAG, "Custom file path, you must specify authority, otherwise the notification should not be turned on. ");
-            this.mEnableIndicator = false;
-        } else {
-            this.mEnableIndicator = enableIndicator;
-        }
-        return this;
-    }
+	protected DownloadTask setContext(Context context) {
+		mContext = context.getApplicationContext();
+		return this;
+	}
 
-    public File getFile() {
-        return mFile;
-    }
+	protected DownloadTask setEnableIndicator(boolean enableIndicator) {
+		if (enableIndicator && mFile != null && TextUtils.isEmpty(authority)) {
+			Runtime.getInstance().logError(TAG, "Custom file path, you must specify authority, otherwise the notification should not be turned on. ");
+			this.mEnableIndicator = false;
+		} else {
+			this.mEnableIndicator = enableIndicator;
+		}
+		return this;
+	}
 
-    public Uri getFileUri() {
-        return Uri.fromFile(this.mFile);
-    }
+	public File getFile() {
+		return mFile;
+	}
 
-    String getAuthority() {
-        return authority;
-    }
+	public Uri getFileUri() {
+		return Uri.fromFile(this.mFile);
+	}
 
-    DownloadTask setFileSafe(@NonNull File file) {
-        mFile = file;
-        return this;
-    }
+	String getAuthority() {
+		return authority;
+	}
 
-    protected DownloadTask setFile(@NonNull File file) {
-        mFile = file;
-        this.authority = "";
-        checkCustomFilePath(file);
-        return this;
-    }
+	DownloadTask setFileSafe(@NonNull File file) {
+		mFile = file;
+		return this;
+	}
 
-    private void checkCustomFilePath(File file) {
-        if (file == null || file.getAbsolutePath().startsWith(Runtime.getInstance().getDefaultDir(this.getContext()).getAbsolutePath())) {
-            isCustomFile = false;
-        } else if (!TextUtils.isEmpty(this.authority)) {
-            setEnableIndicator(true);
-            isCustomFile = true;
-        } else {
-            setEnableIndicator(false);
-            isCustomFile = true;
-        }
-    }
+	protected DownloadTask setFile(@NonNull File file) {
+		mFile = file;
+		this.authority = "";
+		checkCustomFilePath(file);
+		return this;
+	}
 
-    boolean isCustomFile() {
-        return isCustomFile;
-    }
+	private void checkCustomFilePath(File file) {
+		if (file == null || file.getAbsolutePath().startsWith(Runtime.getInstance().getDefaultDir(this.getContext()).getAbsolutePath())) {
+			isCustomFile = false;
+		} else if (!TextUtils.isEmpty(this.authority)) {
+			setEnableIndicator(true);
+			isCustomFile = true;
+		} else {
+			setEnableIndicator(false);
+			isCustomFile = true;
+		}
+	}
 
-    protected DownloadTask setFile(@NonNull File file, @NonNull String authority) {
-        this.mFile = file;
-        this.authority = authority;
-        checkCustomFilePath(file);
-        return this;
-    }
+	boolean isCustomFile() {
+		return isCustomFile;
+	}
 
-    void updateTime(long beginTime) {
-        if (this.beginTime == 0L) {
-            this.beginTime = beginTime;
-            return;
-        }
-        if (this.beginTime != beginTime) {
-            detalTime += Math.abs(beginTime - this.pauseTime);
-        }
-    }
+	protected DownloadTask setFile(@NonNull File file, @NonNull String authority) {
+		this.mFile = file;
+		this.authority = authority;
+		checkCustomFilePath(file);
+		return this;
+	}
 
-    public long getUsedTime() {
-        if (status.get() == STATUS_DOWNLOADING) {
-            return beginTime > 0L ? SystemClock.elapsedRealtime() - beginTime - detalTime : 0L;
-        } else if (status.get() == STATUS_COMPLETED) {
-            return endTime - beginTime - detalTime;
-        } else {
-            return 0L;
-        }
-    }
+	void updateTime(long beginTime) {
+		if (this.beginTime == 0L) {
+			this.beginTime = beginTime;
+			return;
+		}
+		if (this.beginTime != beginTime) {
+			detalTime += Math.abs(beginTime - this.pauseTime);
+		}
+	}
 
-    public long getBeginTime() {
-        return beginTime;
-    }
+	public long getUsedTime() {
+		if (status == STATUS_DOWNLOADING) {
+			return beginTime > 0L ? SystemClock.elapsedRealtime() - beginTime - detalTime : 0L;
+		} else if (status == STATUS_CANCELED) {
+			return endTime - beginTime - detalTime;
+		} else if (status == STATUS_PENDDING) {
+			return pauseTime > 0L ? pauseTime - beginTime - detalTime : 0L;
+		} else if (status == STATUS_PAUSED) {
+			return pauseTime - beginTime - detalTime;
+		} else if (status == STATUS_NEW) {
+			return pauseTime > 0L ? pauseTime - beginTime - detalTime : 0L;
+		} else if (status == STATUS_COMPLETED) {
+			return endTime - beginTime - detalTime;
+		} else {
+			return 0L;
+		}
+	}
 
-    protected void pause() {
-        pauseTime = SystemClock.elapsedRealtime();
-        connectTimes = 0;
-    }
+	public long getBeginTime() {
+		return beginTime;
+	}
 
-    protected void completed() {
-        endTime = SystemClock.elapsedRealtime();
-    }
+	protected void pause() {
+		pauseTime = SystemClock.elapsedRealtime();
+		connectTimes = 0;
+	}
 
-    protected void destroy() {
-        this.mId = -1;
-        this.mUrl = null;
-        this.mContext = null;
-        this.mFile = null;
-        this.mIsParallelDownload = false;
-        mIsForceDownload = false;
-        mEnableIndicator = true;
-        mDownloadIcon = android.R.drawable.stat_sys_download;
-        mDownloadDoneIcon = android.R.drawable.stat_sys_download_done;
-        mIsParallelDownload = true;
-        mIsBreakPointDownload = true;
-        mUserAgent = "";
-        mContentDisposition = "";
-        mMimetype = "";
-        mContentLength = -1L;
-        if (mHeaders != null) {
-            mHeaders.clear();
-            mHeaders = null;
-        }
-        retry = 3;
-        fileMD5 = "";
-        targetCompareMD5 = "";
-        status.set(STATUS_NEW);
-    }
+	protected void completed() {
+		endTime = SystemClock.elapsedRealtime();
+	}
 
-    DownloadingListener getDownloadingListener() {
-        return mDownloadingListener;
-    }
+	protected void destroy() {
+		this.mId = -1;
+		this.mUrl = null;
+		this.mContext = null;
+		this.mFile = null;
+		this.mIsParallelDownload = false;
+		mIsForceDownload = false;
+		mEnableIndicator = true;
+		mDownloadIcon = android.R.drawable.stat_sys_download;
+		mDownloadDoneIcon = android.R.drawable.stat_sys_download_done;
+		mIsParallelDownload = true;
+		mIsBreakPointDownload = true;
+		mUserAgent = "";
+		mContentDisposition = "";
+		mMimetype = "";
+		mContentLength = -1L;
+		if (mHeaders != null) {
+			mHeaders.clear();
+			mHeaders = null;
+		}
+		retry = 3;
+		fileMD5 = "";
+		targetCompareMD5 = "";
+//		status.set(STATUS_NEW);
+	}
 
-    protected DownloadTask
-    setDownloadingListener(DownloadingListener downloadingListener) {
-        mDownloadingListener = downloadingListener;
-        return this;
-    }
+	DownloadingListener getDownloadingListener() {
+		return mDownloadingListener;
+	}
 
-    public DownloadListener getDownloadListener() {
-        return mDownloadListener;
-    }
+	protected DownloadTask
+	setDownloadingListener(DownloadingListener downloadingListener) {
+		mDownloadingListener = downloadingListener;
+		return this;
+	}
 
-
-    protected DownloadTask setDownloadListener(DownloadListener downloadListener) {
-        mDownloadListener = downloadListener;
-        return this;
-    }
-
-    protected DownloadTask
-    setDownloadListenerAdapter(DownloadListenerAdapter downloadListenerAdapter) {
-        setDownloadListener(downloadListenerAdapter);
-        setDownloadingListener(downloadListenerAdapter);
-        return this;
-    }
-
-    void setTotalsLength(long totalsLength) {
-        mTotalsLength = totalsLength;
-    }
-
-    protected long getTotalsLength() {
-        return mTotalsLength;
-    }
+	public DownloadListener getDownloadListener() {
+		return mDownloadListener;
+	}
 
 
-    protected DownloadTask setBreakPointDownload(boolean breakPointDownload) {
-        mIsBreakPointDownload = breakPointDownload;
-        return this;
-    }
+	protected DownloadTask setDownloadListener(DownloadListener downloadListener) {
+		mDownloadListener = downloadListener;
+		return this;
+	}
 
-    protected DownloadTask setForceDownload(boolean force) {
-        mIsForceDownload = force;
-        return this;
-    }
+	protected DownloadTask
+	setDownloadListenerAdapter(DownloadListenerAdapter downloadListenerAdapter) {
+		setDownloadListener(downloadListenerAdapter);
+		setDownloadingListener(downloadListenerAdapter);
+		return this;
+	}
 
-    protected DownloadTask setIcon(@DrawableRes int icon) {
-        this.mDownloadIcon = icon;
-        return this;
-    }
+	void setTotalsLength(long totalsLength) {
+		mTotalsLength = totalsLength;
+	}
 
-    protected DownloadTask setParallelDownload(boolean parallelDownload) {
-        mIsParallelDownload = parallelDownload;
-        return this;
-    }
+	public long getTotalsLength() {
+		return mTotalsLength;
+	}
 
-    protected DownloadTask addHeader(String key, String value) {
-        if (this.mHeaders == null) {
-            this.mHeaders = new android.support.v4.util.ArrayMap<>();
-        }
-        this.mHeaders.put(key, value);
-        return this;
-    }
+	public long getLoaded() {
+		return loaded;
+	}
 
-    protected DownloadTask autoOpenIgnoreMD5() {
-        mAutoOpen = true;
-        if (mFile != null && TextUtils.isEmpty(authority)) {
-            Runtime.getInstance().logError(TAG, "Custom file path, you must specify authority, otherwise the auto open should be closed. ");
-            this.mAutoOpen = false;
-        }
-        return this;
-    }
+	void setLoaded(long loaded) {
+		this.loaded = loaded;
+	}
 
-    protected DownloadTask autoOpenWithMD5(String md5) {
-        if (TextUtils.isEmpty(md5)) {
-            return this;
-        }
-        mAutoOpen = true;
-        if (mFile != null && TextUtils.isEmpty(authority)) {
-            Runtime.getInstance().logError(TAG, "Custom file path, you must specify authority, otherwise the auto open should be closed. ");
-            this.mAutoOpen = false;
-        }
-        this.targetCompareMD5 = md5;
-        return this;
-    }
+	protected DownloadTask setBreakPointDownload(boolean breakPointDownload) {
+		mIsBreakPointDownload = breakPointDownload;
+		return this;
+	}
 
-    protected DownloadTask closeAutoOpen() {
-        mAutoOpen = false;
-        return this;
-    }
+	protected DownloadTask setForceDownload(boolean force) {
+		mIsForceDownload = force;
+		return this;
+	}
 
-    protected DownloadTask setDownloadTimeOut(long downloadTimeOut) {
-        this.downloadTimeOut = downloadTimeOut;
-        return this;
-    }
+	protected DownloadTask setIcon(@DrawableRes int icon) {
+		this.mDownloadIcon = icon;
+		return this;
+	}
 
-    protected DownloadTask setConnectTimeOut(long connectTimeOut) {
-        this.connectTimeOut = connectTimeOut;
-        return this;
-    }
+	protected DownloadTask setParallelDownload(boolean parallelDownload) {
+		mIsParallelDownload = parallelDownload;
+		return this;
+	}
 
-    protected DownloadTask setBlockMaxTime(long blockMaxTime) {
-        this.blockMaxTime = blockMaxTime;
-        return this;
-    }
+	protected DownloadTask addHeader(String key, String value) {
+		if (this.mHeaders == null) {
+			this.mHeaders = new android.support.v4.util.ArrayMap<>();
+		}
+		this.mHeaders.put(key, value);
+		return this;
+	}
 
-    protected DownloadTask setUserAgent(String userAgent) {
-        this.mUserAgent = userAgent;
-        return this;
-    }
+	protected DownloadTask autoOpenIgnoreMD5() {
+		mAutoOpen = true;
+		if (mFile != null && TextUtils.isEmpty(authority)) {
+			Runtime.getInstance().logError(TAG, "Custom file path, you must specify authority, otherwise the auto open should be closed. ");
+			this.mAutoOpen = false;
+		}
+		return this;
+	}
 
-    DownloadTask setContentLength(long contentLength) {
-        this.mContentLength = contentLength;
-        return this;
-    }
+	protected DownloadTask autoOpenWithMD5(String md5) {
+		if (TextUtils.isEmpty(md5)) {
+			return this;
+		}
+		mAutoOpen = true;
+		if (mFile != null && TextUtils.isEmpty(authority)) {
+			Runtime.getInstance().logError(TAG, "Custom file path, you must specify authority, otherwise the auto open should be closed. ");
+			this.mAutoOpen = false;
+		}
+		this.targetCompareMD5 = md5;
+		return this;
+	}
 
-    DownloadTask setMimetype(String mimetype) {
-        this.mMimetype = mimetype;
-        return this;
-    }
+	protected DownloadTask closeAutoOpen() {
+		mAutoOpen = false;
+		return this;
+	}
 
-    DownloadTask setContentDisposition(String contentDisposition) {
-        this.mContentDisposition = contentDisposition;
-        return this;
-    }
+	protected DownloadTask setDownloadTimeOut(long downloadTimeOut) {
+		this.downloadTimeOut = downloadTimeOut;
+		return this;
+	}
 
-    protected DownloadTask setUrl(String url) {
-        this.mUrl = url;
-        return this;
-    }
+	protected DownloadTask setConnectTimeOut(long connectTimeOut) {
+		this.connectTimeOut = connectTimeOut;
+		return this;
+	}
 
-    protected DownloadTask setDownloadDoneIcon(@DrawableRes int icon) {
-        this.mDownloadDoneIcon = icon;
-        return this;
-    }
+	protected DownloadTask setBlockMaxTime(long blockMaxTime) {
+		this.blockMaxTime = blockMaxTime;
+		return this;
+	}
 
-    protected DownloadTask setQuickProgress(boolean quickProgress) {
-        this.quickProgress = quickProgress;
-        return this;
-    }
+	protected DownloadTask setUserAgent(String userAgent) {
+		this.mUserAgent = userAgent;
+		return this;
+	}
 
-    protected DownloadTask setTargetCompareMD5(String targetCompareMD5) {
-        this.targetCompareMD5 = targetCompareMD5;
-        return this;
-    }
+	DownloadTask setContentLength(long contentLength) {
+		this.mContentLength = contentLength;
+		return this;
+	}
 
-    DownloadTask setFileMD5(String fileMD5) {
-        this.fileMD5 = fileMD5;
-        return this;
-    }
+	DownloadTask setMimetype(String mimetype) {
+		this.mMimetype = mimetype;
+		return this;
+	}
 
-    @Override
-    public String getFileMD5() {
-        if (TextUtils.isEmpty(fileMD5)) {
-            this.fileMD5 = Runtime.getInstance().md5(mFile);
-            if (fileMD5 == null) {
-                fileMD5 = "";
-            }
-        }
-        return super.getFileMD5();
-    }
+	DownloadTask setContentDisposition(String contentDisposition) {
+		this.mContentDisposition = contentDisposition;
+		return this;
+	}
 
-    protected DownloadTask setRetry(int retry) {
-        if (retry > 5) {
-            retry = 5;
-        }
-        if (retry < 0) {
-            retry = 0;
-        }
-        this.retry = retry;
-        return this;
-    }
+	protected DownloadTask setUrl(String url) {
+		this.mUrl = url;
+		return this;
+	}
 
-    @Override
-    public DownloadTask clone() {
-        try {
-            DownloadTask downloadTask = (DownloadTask) super.clone();
-            downloadTask.mId = Runtime.getInstance().generateGlobalId();
-            return downloadTask;
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
-            return new DownloadTask();
-        }
-    }
+	protected DownloadTask setDownloadDoneIcon(@DrawableRes int icon) {
+		this.mDownloadDoneIcon = icon;
+		return this;
+	}
 
-    public boolean isUniquePath() {
-        return uniquePath;
-    }
+	protected DownloadTask setQuickProgress(boolean quickProgress) {
+		this.quickProgress = quickProgress;
+		return this;
+	}
 
-    protected void setUniquePath(boolean uniquePath) {
-        this.uniquePath = uniquePath;
-    }
+	protected DownloadTask setTargetCompareMD5(String targetCompareMD5) {
+		this.targetCompareMD5 = targetCompareMD5;
+		return this;
+	}
+
+	DownloadTask setFileMD5(String fileMD5) {
+		this.fileMD5 = fileMD5;
+		return this;
+	}
+
+	@Override
+	public String getFileMD5() {
+		if (TextUtils.isEmpty(fileMD5)) {
+			this.fileMD5 = Runtime.getInstance().md5(mFile);
+			if (fileMD5 == null) {
+				fileMD5 = "";
+			}
+		}
+		return super.getFileMD5();
+	}
+
+	protected DownloadTask setRetry(int retry) {
+		if (retry > 5) {
+			retry = 5;
+		}
+		if (retry < 0) {
+			retry = 0;
+		}
+		this.retry = retry;
+		return this;
+	}
+
+	@Override
+	public DownloadTask clone() {
+		try {
+			DownloadTask downloadTask = (DownloadTask) super.clone();
+			downloadTask.mId = Runtime.getInstance().generateGlobalId();
+			return downloadTask;
+		} catch (Throwable throwable) {
+			throwable.printStackTrace();
+			return new DownloadTask();
+		}
+	}
+
+	public boolean isUniquePath() {
+		return uniquePath;
+	}
+
+	protected void setUniquePath(boolean uniquePath) {
+		this.uniquePath = uniquePath;
+	}
 
 }

@@ -10,7 +10,7 @@ import java.io.File;
 public interface FileComparator {
 
 	int COMPARE_RESULT_SUCCESSFUL = 1;
-	int COMPARE_RESULT_REDOWNLOAD_CONVER = 2;
+	int COMPARE_RESULT_REDOWNLOAD_COVER = 2;
 	int COMPARE_RESULT_REDOWNLOAD_RENAME = 3;
 
 	int compare(String url, File originFile, String inputMD5, String originFileMD5);

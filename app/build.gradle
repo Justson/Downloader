@@ -32,8 +32,8 @@ dependencies {
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     testCompile 'junit:junit:4.12'
     implementation project(':library')
-    implementation 'com.liulishuo.filedownloader:library:1.7.4'
+//    compile 'com.download.library:Downloader:4.1.1'
 //    implementation 'com.github.Justson:Downloader:v4.0.3'
     implementation 'com.squareup.picasso:picasso:2.71828'
-    compile 'com.download.library:Downloader:4.1.1'
+    implementation 'com.liulishuo.filedownloader:library:1.7.4'
 }
