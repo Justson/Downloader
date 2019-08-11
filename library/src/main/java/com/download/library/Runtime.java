@@ -148,7 +148,7 @@ public final class Runtime {
 	}
 
 	public String getVersion() {
-		return "4.1.1";
+		return "4.1.2";
 	}
 
 	public int generateGlobalId() {
