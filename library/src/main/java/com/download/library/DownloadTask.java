@@ -178,7 +178,7 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
 			return pauseTime - beginTime - detalTime;
 		} else if (status == STATUS_NEW) {
 			return pauseTime > 0L ? pauseTime - beginTime - detalTime : 0L;
-		} else if (status == STATUS_COMPLETED) {
+		} else if (status == STATUS_COMPLETED || status == STATUS_ERROR) {
 			return endTime - beginTime - detalTime;
 		} else {
 			return 0L;
