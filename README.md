@@ -1,6 +1,10 @@
 ## Downloader
 Downloader 是一个非常轻巧以及功能强大快速下载库，只有50KB 左右大小，对于大多数应用来说，性价比最高的一个下载库， 相比系统提供DownloadManager、FileDownloader 来说，Downloader 提供的API更简单、轻量且Downloader提供同步下载，系统通知进度等功能。
 
+## 预览图
+
+<a href="img/download1.jpg"><img src="img/download1.jpg" width="48%"/></a> <a href="img/download2.jpg"><img src="img/download2.jpg" width="48%"/></a> 
+
 ## 特性
 
 * 支持串行，多线程并行下载
@@ -14,6 +18,8 @@ Downloader 是一个非常轻巧以及功能强大快速下载库，只有50KB �
 * 提供简易的Api
 * 支持重定向下载
 * 支持进度回调
+* 重试次数配置
+* 支持下载APK文件完成后自动安装
 * 支持暂停，恢复下载等操作
 
 ## 下载
@@ -27,7 +33,7 @@ allprojects {
 ```
 
 ```
-implementation 'com.github.Justson:Downloader:v4.1.1'
+implementation 'com.download.library:Downloader:4.1.2'
 ```
 
 ## 例子

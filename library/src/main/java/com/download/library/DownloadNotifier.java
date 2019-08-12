@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 import static android.content.Context.NOTIFICATION_SERVICE;
+import static com.download.library.Downloader.DOWNLOAD_MESSAGE;
 
 /**
  * @author cenxiaozhong
@@ -291,5 +292,14 @@ public class DownloadNotifier {
 	 */
 	void cancel() {
 		mNotificationManager.cancel(mNotificationId);
+	}
+
+	static void cancel(DownloadTask downloadTask) {
+		NotificationManager notificationManager = (NotificationManager) downloadTask.getContext()
+				.getSystemService(NOTIFICATION_SERVICE);
+		notificationManager.cancel(downloadTask.mId);
+		if (null != downloadTask.getDownloadListener()) {
+			downloadTask.getDownloadListener().onResult(new DownloadException(Downloader.ERROR_USER_CANCEL, DOWNLOAD_MESSAGE.get(Downloader.ERROR_USER_CANCEL)), downloadTask.getFileUri(), downloadTask.getUrl(), downloadTask);
+		}
 	}
 }

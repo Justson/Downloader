@@ -111,6 +111,7 @@ public final class Runtime {
 
 	public void setFileComparatorFactory(FileComparator.FileComparatorFactory fileComparatorFactory) {
 		this.mFileComparatorFactory = fileComparatorFactory;
+		this.mFileComparator = null;
 	}
 
 	public void setStorageEngineFactory(StorageEngine.StorageEngineFactory storageEngineFactory) {
@@ -147,7 +148,7 @@ public final class Runtime {
 	}
 
 	public String getVersion() {
-		return "4.1.1";
+		return "4.1.2";
 	}
 
 	public int generateGlobalId() {
