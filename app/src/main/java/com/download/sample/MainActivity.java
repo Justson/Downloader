@@ -33,6 +33,7 @@ import com.download.library.DownloadListenerAdapter;
 import com.download.library.DownloadTask;
 import com.download.library.Downloader;
 import com.download.library.Extra;
+import com.download.library.Runtime;
 import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloadListener;
 import com.liulishuo.filedownloader.FileDownloader;
@@ -127,9 +128,14 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 */
-		/*DownloadImpl.getInstance()
+
+		File dir = new File(getExternalCacheDir() + "/download/" + "public");
+		if (!dir.exists()) {
+			dir.mkdirs();
+		}
+		DownloadImpl.getInstance()
 				.with(getApplicationContext())
-				.target(new File(Runtime.getInstance().getDir(this, true).getAbsolutePath() + "/" + "com.ss.android.article.news_636.apk"), this.getPackageName() + ".DownloadFileProvider")//自定义路径需指定目录和authority(FileContentProvide),需要相对应匹配才能启动通知，和自动打开文件
+				.target(new File(getExternalCacheDir() + "/download/" + "public" + "/" + "com.ss.android.article.news_636.apk"), this.getPackageName() + ".SampleFileProvider")//自定义路径需指定目录和authority(FileContentProvide),需要相对应匹配才能启动通知，和自动打开文件
 				.setUniquePath(false)//是否唯一路径
 				.setForceDownload(true)//不管网络类型
 				.setRetry(4)//下载异常，自动重试,最多重试4次
@@ -163,7 +169,7 @@ public class MainActivity extends AppCompatActivity {
 						Log.i(TAG, " path:" + path + " url:" + url + " length:" + new File(path.getPath()).length() + " md5:" + md5 + " extra.getFileMD5:" + extra.getFileMD5());
 						return super.onResult(throwable, path, url, extra);
 					}
-				});*/
+				});
 //		run2();
 	}
 
