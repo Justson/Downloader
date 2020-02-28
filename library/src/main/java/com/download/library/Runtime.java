@@ -32,7 +32,9 @@ import android.util.Log;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+import java.net.URLDecoder;
 import java.security.MessageDigest;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
@@ -50,7 +52,9 @@ public final class Runtime {
 	private AtomicInteger mIDGenerator;
 	private AtomicInteger mThreadGlobalCounter;
 	private File mDownloadDir = null;
-	private static Pattern DISPOSITION_PATTERN = Pattern.compile(".*filename=(.*)");
+	private static Pattern DISPOSITION_PATTERN = Pattern.compile("attachment;\\s*filename\\*\\s*=\\s*\"*([^\"]*)'\\S*'([^\"]*)\"*");
+	private static final Pattern CONTENT_DISPOSITION_WITHOUT_ASTERISK_PATTERN =
+			Pattern.compile("attachment;\\s*filename\\s*=\\s*\"*([^\"\\n]*)\"*");
 	static final String PREFIX = "Download-";
 	boolean DEBUG = true;
 	private String authority;
@@ -148,7 +152,7 @@ public final class Runtime {
 	}
 
 	public String getVersion() {
-		return "4.1.2";
+		return BuildConfig.VERSION_NAME;
 	}
 
 	public int generateGlobalId() {
@@ -230,12 +234,21 @@ public final class Runtime {
 		if (TextUtils.isEmpty(contentDisposition)) {
 			return "";
 		}
-		Matcher m = DISPOSITION_PATTERN.matcher(contentDisposition.toLowerCase());
-		if (m.find()) {
-			return m.group(1);
-		} else {
-			return "";
+		try {
+			Matcher m = DISPOSITION_PATTERN.matcher(contentDisposition);
+			if (m.find()) {
+				String charset = m.group(1);
+				String encodeFileName = m.group(2);
+				return URLDecoder.decode(encodeFileName, charset);
+			}
+
+			m = CONTENT_DISPOSITION_WITHOUT_ASTERISK_PATTERN.matcher(contentDisposition);
+			if (m.find()) {
+				return m.group(1);
+			}
+		} catch (IllegalStateException | UnsupportedEncodingException ignore) {
 		}
+		return "";
 	}
 
 	public File getDir(Context context, boolean isPublic) {

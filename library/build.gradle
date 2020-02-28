@@ -10,8 +10,8 @@ android {
     defaultConfig {
         minSdkVersion 14
         targetSdkVersion TARGET_SDK_VERSION.toInteger()
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "4.1.3"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
     }
@@ -49,7 +49,7 @@ dependencies {
 publish {
     def groupProjectID = 'com.download.library'
     def artifactProjectID = 'Downloader'
-    def publishVersionID = '4.1.2'
+    def publishVersionID = '4.1.3'
     userOrg = 'just'
     groupId = groupProjectID
     artifactId = artifactProjectID
