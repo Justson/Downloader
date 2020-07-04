@@ -179,6 +179,10 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 	protected Downloader() {
 	}
 
+	public static ExecuteTask create(DownloadTask downloadTask) {
+		return null;
+	}
+
 	void checkIsNullTask(DownloadTask downloadTask) {
 		if (null == downloadTask) {
 			throw new NullPointerException("downloadTask can't be null.");
