@@ -39,14 +39,18 @@ public class Dispatch {
         }
     };
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    public Dispatch() {
-        this(Objects.requireNonNull(Looper.myLooper()));
+    public static <T> T requireNonNull(T obj) {
+        if (obj == null)
+            throw new NullPointerException();
+        return obj;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    public Dispatch() {
+        this(requireNonNull(Looper.myLooper()));
+    }
+
     public Dispatch(@NonNull Looper looper) {
-        Objects.requireNonNull(looper);
+        requireNonNull(looper);
         this.mLooper = looper;
         this.handler = new Handler(looper);
     }

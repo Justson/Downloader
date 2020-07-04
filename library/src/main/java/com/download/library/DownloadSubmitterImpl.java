@@ -1,16 +1,19 @@
 package com.download.library;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Looper;
 import android.os.Process;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
+import com.download.library.queue.Dispatch;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
@@ -18,6 +21,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import static com.download.library.DownloadTask.STATUS_PAUSED;
+import static com.download.library.Downloader.DOWNLOAD_MESSAGE;
 import static com.download.library.Downloader.ERROR_LOAD;
 import static com.download.library.Downloader.ERROR_USER_CANCEL;
 import static com.download.library.Downloader.ERROR_USER_PAUSE;
@@ -34,6 +38,7 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
     private static final String TAG = DownloadSubmitterImpl.class.getSimpleName();
     private final Executor mExecutor;
     private final Executor mExecutor0;
+    private volatile Dispatch mMainQueue = null;
 
 
     private DownloadSubmitterImpl() {
@@ -76,7 +81,24 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
     }
 
     @Override
-    public File submit0(DownloadTask downloadTask) throws Exception {
+    public File submit0(final DownloadTask downloadTask) throws Exception {
+//        RunnableFuture<File> future = new FutureTask<File>(new Callable<File>() {
+//            @Override
+//            public File call() throws Exception {
+//                synchronized (Downloader.class) {
+//                    if (TextUtils.isEmpty(downloadTask.getUrl())) {
+//                        return null;
+//                    }
+//                    if (ExecuteTasksMap.getInstance().exist(downloadTask.getUrl())) {
+//                        return null;
+//                    }
+//                    Downloader downloader = (Downloader) Downloader.create(downloadTask);
+//                    ExecuteTasksMap.getInstance().addTask(downloadTask.getUrl(), downloader);
+//                    new DownloadStartTask(downloadTask, downloader).run();
+//                }
+//                return null;
+//            }
+//        });
         return null;
     }
 
@@ -98,6 +120,18 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
                 command.run();
             }
         });
+    }
+
+
+    Dispatch getMainQueue() {
+        if (mMainQueue == null) {
+            synchronized (DownloadSubmitterImpl.this) {
+                if (mMainQueue == null) {
+                    mMainQueue = new Dispatch(Looper.getMainLooper());
+                }
+            }
+        }
+        return mMainQueue;
     }
 
 
@@ -150,7 +184,7 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
                 if (null == mDownloadTask.getFile()) {
                     throw new RuntimeException("target file can't be created . ");
                 }
-                createNotifier();
+                mDownloadTask.createNotifier();
 
                 if (this.mDownloadTask.isParallelDownload()) {
                     executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
@@ -180,17 +214,6 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
             });
         }
 
-        private void createNotifier() {
-            DownloadTask downloadTask = this.mDownloadTask;
-            Context mContext = downloadTask.getContext().getApplicationContext();
-            if (null != mContext && downloadTask.isEnableIndicator()) {
-                mDownloadNotifier = new DownloadNotifier(mContext, downloadTask.getId());
-                mDownloadNotifier.initBuilder(downloadTask);
-            }
-            if (null != this.mDownloadNotifier) {
-                mDownloadNotifier.onPreDownload();
-            }
-        }
     }
 
     private static final class DownloadTaskOver implements Runnable {
@@ -198,18 +221,19 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
         private final int mResult;
         private final Downloader mDownloader;
         private final DownloadTask mDownloadTask;
+        private final DownloadNotifier mDownloadNotifier;
 
         DownloadTaskOver(int result, Downloader downloader, DownloadTask downloadTask) {
             this.mResult = result;
             this.mDownloader = downloader;
             this.mDownloadTask = downloadTask;
+            this.mDownloadNotifier = downloadTask.mDownloadNotifier;
         }
 
         @Override
         public void run() {
             DownloadTask downloadTask = this.mDownloadTask;
             try {
-
                 if (mResult == ERROR_USER_PAUSE) {
                     downloadTask.setStatus(STATUS_PAUSED);
                     downloadTask.pause();
@@ -251,14 +275,7 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
                 if (!downloadTask.isAutoOpen()) {
                     return;
                 }
-                Intent mIntent = Runtime.getInstance().getCommonFileIntentCompat(downloadTask.getContext(), downloadTask);
-                if (null == mIntent) {
-                    return;
-                }
-                if (!(downloadTask.getContext() instanceof Activity)) {
-                    mIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                }
-                downloadTask.getContext().startActivity(mIntent);
+                autoOpen();
             } catch (Throwable throwable) {
                 if (Runtime.getInstance().isDebug()) {
                     throwable.printStackTrace();
@@ -269,6 +286,44 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
                 }
                 destroyTask();
             }
+        }
+
+        void destroyTask() {
+            DownloadTask downloadTask = mDownloadTask;
+            if (downloadTask.getStatus() == DownloadTask.STATUS_CANCELED || downloadTask.getStatus() == STATUS_PAUSED) {
+                return;
+            }
+            downloadTask.destroy();
+        }
+
+        private void autoOpen() {
+            getInstance().getMainQueue().postRunnableScissors(new Runnable() {
+                @Override
+                public void run() {
+                    Intent mIntent = Runtime.getInstance().getCommonFileIntentCompat(mDownloadTask.getContext(), mDownloadTask);
+                    if (!(mDownloadTask.getContext() instanceof Activity)) {
+                        mIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    }
+                    mDownloadTask.getContext().startActivity(mIntent);
+                }
+            });
+        }
+
+        private boolean doCallback(final Integer code) {
+            final DownloadTask downloadTask = this.mDownloadTask;
+            final DownloadListener mDownloadListener = downloadTask.getDownloadListener();
+            if (null == mDownloadListener) {
+                return false;
+            }
+            return getInstance().getMainQueue().call(new Callable<Boolean>() {
+                @Override
+                public Boolean call() {
+                    return mDownloadListener.onResult(code <= SUCCESSFUL ? null
+                                    : new DownloadException(code, "failed , cause:" + DOWNLOAD_MESSAGE.get(code)), downloadTask.getFileUri(),
+                            downloadTask.getUrl(), mDownloadTask);
+                }
+            });
+
         }
     }
 
