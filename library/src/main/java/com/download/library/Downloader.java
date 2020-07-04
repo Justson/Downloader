@@ -153,7 +153,7 @@ public class Downloader extends AsyncTask<Void, Integer, Integer> implements IDo
 	public static final int ERROR_SERVICE = 0x503;
 	public static final int SUCCESSFUL = 0x200;
 	public static final int HTTP_RANGE_NOT_SATISFIABLE = 416;
-	protected static final SparseArray<String> DOWNLOAD_MESSAGE = new SparseArray<>(12);
+	protected static final SparseArray<String> DOWNLOAD_MESSAGE = new SparseArray<>(13);
 	protected static final Executor SERIAL_EXECUTOR = new SerialExecutor();
 	private static final Handler HANDLER = new Handler(Looper.getMainLooper());
 	protected volatile boolean enableProgress = false;
