@@ -298,9 +298,10 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
 
         void destroyTask() {
             DownloadTask downloadTask = mDownloadTask;
-            if (downloadTask.getStatus() == DownloadTask.STATUS_CANCELED || downloadTask.getStatus() == STATUS_PAUSED) {
+            if (!downloadTask.isSuccessful()) {
                 return;
             }
+            Runtime.getInstance().log(TAG, "destroyTask:" + downloadTask.getUrl());
             downloadTask.destroy();
         }
 

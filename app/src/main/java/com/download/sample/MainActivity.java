@@ -17,6 +17,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -267,7 +268,10 @@ public class MainActivity extends AppCompatActivity {
             Log.e(TAG, "status:" + downloadBean.getStatus() + " position:" + i);
             if (downloadBean.getStatus() == DownloadTask.STATUS_NEW) {
                 nativeDownloadViewHolder.mStatusButton.setText("开始");
-            } else if (downloadBean.getStatus() == DownloadTask.STATUS_PENDDING) {
+            }else if (downloadBean.getStatus() == DownloadTask.STATUS_PAUSING) {
+				nativeDownloadViewHolder.mStatusButton.setText("暂停中...");
+				nativeDownloadViewHolder.mStatusButton.setEnabled(false);
+			} else if (downloadBean.getStatus() == DownloadTask.STATUS_PENDDING) {
                 nativeDownloadViewHolder.mStatusButton.setText("等待中...");
                 nativeDownloadViewHolder.mStatusButton.setEnabled(false);
             } else if (downloadBean.getStatus() == DownloadTask.STATUS_PAUSED) {
@@ -286,7 +290,7 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public void onClick(View v) {
-                	Runtime.getInstance().log(TAG,"mStatusButton onClick");
+                    Runtime.getInstance().log(TAG, "mStatusButton onClick");
                     if (SystemClock.elapsedRealtime() - lastTime <= 500) {
                         return;
                     }
@@ -300,6 +304,11 @@ public class MainActivity extends AppCompatActivity {
                         }
                     } else if (downloadBean.getStatus() == DownloadTask.STATUS_PENDDING) {
                     } else if (downloadBean.getStatus() == DownloadTask.STATUS_DOWNLOADING) {
+                        if (TextUtils.isEmpty(downloadBean.getUrl())) {
+                            nativeDownloadViewHolder.mStatusButton.setText("出错");
+                            nativeDownloadViewHolder.mStatusButton.setEnabled(false);
+                            return;
+                        }
                         DownloadTask downloadTask = DownloadImpl.getInstance().pause(downloadBean.getUrl());
                         if (downloadTask != null) {
                             nativeDownloadViewHolder.mStatusButton.setText("继续");
@@ -327,8 +336,8 @@ public class MainActivity extends AppCompatActivity {
                         Log.e(TAG, "item recycle onStart");
                         return;
                     }
-                    nativeDownloadViewHolder.mStatusButton.setText("暂停");
-                    nativeDownloadViewHolder.mStatusButton.setEnabled(true);
+//                    nativeDownloadViewHolder.mStatusButton.setText("暂停");
+//                    nativeDownloadViewHolder.mStatusButton.setEnabled(true);
                     Log.i(TAG, " isRunning:" + DownloadImpl.getInstance().isRunning(url));
                 }
 
@@ -367,10 +376,44 @@ public class MainActivity extends AppCompatActivity {
                             nativeDownloadViewHolder.mStatusButton.setEnabled(true);
                         } else {
                             nativeDownloadViewHolder.mStatusButton.setText("出错");
+                            nativeDownloadViewHolder.mStatusButton.setEnabled(false);
                         }
                         Toast.makeText(MainActivity.this, downloadException.getMsg(), 1).show();
                     }
                     return super.onResult(throwable, uri, url, extra);
+                }
+
+                @Override
+                public void onDownloadStatusChanged(Extra extra, int status) {
+                    super.onDownloadStatusChanged(extra, status);
+                    Log.e(TAG, "onDownloadStatusChanged:" + status);
+                    if (nativeDownloadViewHolder.mStatusButton.getTag() != downloadBean) {
+                        Log.e(TAG, "item recycle onDownloadStatusChanged");
+                        return;
+                    }
+                    if (status == DownloadTask.STATUS_NEW) {
+                        nativeDownloadViewHolder.mStatusButton.setText("开始");
+                        nativeDownloadViewHolder.mStatusButton.setEnabled(true);
+
+                    } else if (status == DownloadTask.STATUS_PENDDING) {
+                        nativeDownloadViewHolder.mStatusButton.setText("等待中...");
+                        nativeDownloadViewHolder.mStatusButton.setEnabled(false);
+                    } else if (status == DownloadTask.STATUS_PAUSING) {
+						nativeDownloadViewHolder.mStatusButton.setText("暂停中...");
+						nativeDownloadViewHolder.mStatusButton.setEnabled(false);
+					} else if (downloadBean.getStatus() == DownloadTask.STATUS_DOWNLOADING) {
+                        nativeDownloadViewHolder.mStatusButton.setText("暂停");
+                        nativeDownloadViewHolder.mStatusButton.setEnabled(true);
+                    } /*else if (downloadBean.getStatus() == DownloadTask.STATUS_PAUSED) {
+                        nativeDownloadViewHolder.mStatusButton.setText("继续");
+                        nativeDownloadViewHolder.mStatusButton.setEnabled(true);
+                    } else if (downloadBean.getStatus() == DownloadTask.STATUS_CANCELED) {
+                        nativeDownloadViewHolder.mStatusButton.setText("出错");
+                        nativeDownloadViewHolder.mStatusButton.setEnabled(false);
+                    } else {
+                        nativeDownloadViewHolder.mStatusButton.setEnabled(false);
+                        nativeDownloadViewHolder.mStatusButton.setText("已完成");
+                    }*/
                 }
             });
 

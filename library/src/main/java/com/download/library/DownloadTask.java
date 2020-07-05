@@ -24,6 +24,8 @@ import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
+import com.download.library.queue.GlobalQueue;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -46,9 +48,10 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
     public static final int STATUS_PENDDING = 1001;
     public static final int STATUS_DOWNLOADING = 1002;
     public static final int STATUS_PAUSED = 1003;
-    public static final int STATUS_SUCCESS = 1004;
-    public static final int STATUS_CANCELED = 1005;
-    public static final int STATUS_ERROR = 1006;
+    public static final int STATUS_PAUSING = 1004;
+    public static final int STATUS_SUCCESSFUL = 1005;
+    public static final int STATUS_CANCELED = 1006;
+    public static final int STATUS_ERROR = 1007;
     long beginTime = 0L;
     long pauseTime = 0L;
     long endTime = 0L;
@@ -58,6 +61,7 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
     int connectTimes = 0;
     volatile long loaded = 0L;
     String redirect = "";
+    DownloadStatusListener mDownloadStatusListener;
 
     /**
      * 通知
@@ -69,7 +73,7 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
     }
 
 
-    @IntDef({STATUS_NEW, STATUS_PENDDING, STATUS_DOWNLOADING, STATUS_PAUSED, STATUS_SUCCESS, STATUS_CANCELED, STATUS_ERROR})
+    @IntDef({STATUS_NEW, STATUS_PENDDING, STATUS_DOWNLOADING, STATUS_PAUSED, STATUS_PAUSING, STATUS_SUCCESSFUL, STATUS_CANCELED, STATUS_ERROR})
     @interface DownloadTaskStatus {
     }
 
@@ -83,8 +87,18 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
         return status;
     }
 
-    synchronized void setStatus(@DownloadTaskStatus int status) {
+    synchronized void setStatus(@DownloadTaskStatus final int status) {
         this.status = status;
+        final DownloadStatusListener downloadStatusListener = mDownloadStatusListener;
+        final DownloadTask downloadTask = this;
+        if (null != downloadStatusListener) {
+            GlobalQueue.getMainQueue().postRunnable(new Runnable() {
+                @Override
+                public void run() {
+                    downloadStatusListener.onDownloadStatusChanged(downloadTask.clone(), status);
+                }
+            });
+        }
     }
 
 
@@ -200,15 +214,24 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
             return endTime - beginTime - detalTime;
         } else if (status == STATUS_PENDDING) {
             return pauseTime > 0L ? pauseTime - beginTime - detalTime : 0L;
-        } else if (status == STATUS_PAUSED) {
+        } else if (status == STATUS_PAUSED || status == STATUS_PAUSING) {
             return pauseTime - beginTime - detalTime;
         } else if (status == STATUS_NEW) {
             return pauseTime > 0L ? pauseTime - beginTime - detalTime : 0L;
-        } else if (status == STATUS_SUCCESS || status == STATUS_ERROR) {
+        } else if (status == STATUS_SUCCESSFUL || status == STATUS_ERROR) {
             return endTime - beginTime - detalTime;
         } else {
             return 0L;
         }
+    }
+
+    public boolean isPausing() {
+        return getStatus() == STATUS_PAUSING;
+    }
+
+    public void pausing() {
+        setStatus(STATUS_PAUSING);
+        pauseTime = SystemClock.elapsedRealtime();
     }
 
     public boolean isPaused() {
@@ -242,7 +265,11 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
 
     protected void successful() {
         endTime = SystemClock.elapsedRealtime();
-        setStatus(STATUS_SUCCESS);
+        setStatus(STATUS_SUCCESSFUL);
+    }
+
+    boolean isSuccessful() {
+        return getStatus() == STATUS_SUCCESSFUL;
     }
 
     protected void completed() {
@@ -299,6 +326,7 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
     setDownloadListenerAdapter(DownloadListenerAdapter downloadListenerAdapter) {
         setDownloadListener(downloadListenerAdapter);
         setDownloadingListener(downloadListenerAdapter);
+        setDownloadStatusListener(downloadListenerAdapter);
         return this;
     }
 
@@ -498,4 +526,12 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
         this.uniquePath = uniquePath;
     }
 
+
+    public DownloadStatusListener getDownloadStatusListener() {
+        return mDownloadStatusListener;
+    }
+
+    void setDownloadStatusListener(DownloadStatusListener downloadStatusListener) {
+        mDownloadStatusListener = downloadStatusListener;
+    }
 }

@@ -215,6 +215,10 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
     protected Integer doInBackground() {
         int result = ERROR_LOAD;
         DownloadTask downloadTask = mDownloadTask;
+        if (downloadTask.isPausing()) {
+            downloadTask.pause();
+            return ERROR_USER_PAUSE;
+        }
         if (downloadTask.isPaused()) {
             return ERROR_USER_PAUSE;
         }
@@ -244,6 +248,9 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
                 if (ioException == null) {
                     break;
                 } else {
+                    if (i == downloadTask.retry) {
+                        downloadTask.error();
+                    }
                     mDownloadMessage.append("\n").append("download error message: ").append(ioException.getMessage());
                 }
                 if (i + 1 <= downloadTask.retry) {
@@ -285,12 +292,25 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
                 if (downloadTask.connectTimes <= 0) {
                     httpURLConnection = createUrlConnection(url);
                     settingHeaders(downloadTask, httpURLConnection);
-                    httpURLConnection.connect();
+                    try {
+                        httpURLConnection.connect();
+                    } catch (IOException e) {
+                        throw e;
+                    }
                 } else {
                     httpURLConnection = createUrlConnection(url);
                     settingHeaders(downloadTask, httpURLConnection);
                     rangeHeaders(downloadTask, httpURLConnection);
-                    httpURLConnection.connect();
+                    try {
+                        httpURLConnection.connect();
+                    } catch (IOException e) {
+                        throw e;
+                    }
+                }
+
+                if (downloadTask.isPausing()) {
+                    downloadTask.pause();
+                    return ERROR_USER_PAUSE;
                 }
 
                 if (downloadTask.isPaused()) {
@@ -677,16 +697,27 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
                 mLastLoaded = 0L;
             }
             int bytes = 0;
-            while (!downloadTask.isCanceled() && !downloadTask.isPaused()) {
-                int n = bis.read(buffer, 0, BUFFER_SIZE);
+            while (!downloadTask.isPausing() && !downloadTask.isCanceled() && !downloadTask.isPaused()) {
+                int n = -1;
+                try {
+                    n = bis.read(buffer, 0, BUFFER_SIZE);
+                } catch (IOException e) {
+                    downloadTask.error();
+                    throw e;
+                }
                 if (n == -1) {
                     break;
                 }
                 out.write(buffer, 0, n);
                 bytes += n;
                 if ((SystemClock.elapsedRealtime() - this.mBeginTime) > mDownloadTimeOut) {
+                    mDownloadTask.error();
                     return ERROR_TIME_OUT;
                 }
+            }
+            if (downloadTask.isPausing()) {
+                downloadTask.pause();
+                return ERROR_USER_PAUSE;
             }
             if (downloadTask.isPaused()) {
                 return ERROR_USER_PAUSE;
@@ -750,7 +781,7 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
         try {
             return downloadTask;
         } finally {
-            downloadTask.pause();
+            downloadTask.pausing();
         }
     }
 
