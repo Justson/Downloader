@@ -7,10 +7,8 @@ import android.os.Message;
 import android.os.MessageQueue;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
 
 import java.lang.reflect.Field;
-import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Exchanger;
 import java.util.concurrent.TimeUnit;
@@ -177,6 +175,14 @@ public class Dispatch {
             return;
         }
         postAtFont(runnable);
+    }
+
+    public void postRunnableQuick(Runnable runnable) {
+        if (Looper.myLooper() == getLooper()) {
+            runnable.run();
+            return;
+        }
+        postRunnable(runnable);
     }
 
     public void post(Runnable runnable) {

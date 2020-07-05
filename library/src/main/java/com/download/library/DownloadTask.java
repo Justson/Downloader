@@ -25,6 +25,7 @@ import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 
 /**
@@ -45,7 +46,7 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
     public static final int STATUS_PENDDING = 1001;
     public static final int STATUS_DOWNLOADING = 1002;
     public static final int STATUS_PAUSED = 1003;
-    public static final int STATUS_COMPLETED = 1004;
+    public static final int STATUS_SUCCESS = 1004;
     public static final int STATUS_CANCELED = 1005;
     public static final int STATUS_ERROR = 1006;
     long beginTime = 0L;
@@ -66,7 +67,8 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
         connectTimes = 0;
     }
 
-    @IntDef({STATUS_NEW, STATUS_PENDDING, STATUS_DOWNLOADING, STATUS_PAUSED, STATUS_COMPLETED, STATUS_CANCELED, STATUS_ERROR})
+
+    @IntDef({STATUS_NEW, STATUS_PENDDING, STATUS_DOWNLOADING, STATUS_PAUSED, STATUS_SUCCESS, STATUS_CANCELED, STATUS_ERROR})
     @interface DownloadTaskStatus {
     }
 
@@ -83,6 +85,7 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
     synchronized void setStatus(@DownloadTaskStatus int status) {
         this.status = status;
     }
+
 
     void resetTime() {
         beginTime = 0L;
@@ -132,6 +135,15 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
     }
 
     protected DownloadTask setFile(@NonNull File file) {
+        if (!file.exists()) {
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+                Runtime.getInstance().logError(TAG, "create file error .");
+                return this;
+            }
+        }
         mFile = file;
         this.authority = "";
         checkCustomFilePath(file);
@@ -155,6 +167,15 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
     }
 
     protected DownloadTask setFile(@NonNull File file, @NonNull String authority) {
+        if (!file.exists()) {
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+                Runtime.getInstance().logError(TAG, "create file error .");
+                return this;
+            }
+        }
         this.mFile = file;
         this.authority = authority;
         checkCustomFilePath(file);
@@ -182,12 +203,21 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
             return pauseTime - beginTime - detalTime;
         } else if (status == STATUS_NEW) {
             return pauseTime > 0L ? pauseTime - beginTime - detalTime : 0L;
-        } else if (status == STATUS_COMPLETED || status == STATUS_ERROR) {
+        } else if (status == STATUS_SUCCESS || status == STATUS_ERROR) {
             return endTime - beginTime - detalTime;
         } else {
             return 0L;
         }
     }
+
+    public boolean isPaused() {
+        return getStatus() == STATUS_PAUSED;
+    }
+
+    public boolean isCanceled() {
+        return getStatus() == STATUS_CANCELED;
+    }
+
 
     public long getBeginTime() {
         return beginTime;
@@ -196,6 +226,22 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
     protected void pause() {
         pauseTime = SystemClock.elapsedRealtime();
         connectTimes = 0;
+        setStatus(STATUS_PAUSED);
+    }
+
+    protected void cancel() {
+        endTime = SystemClock.elapsedRealtime();
+        setStatus(STATUS_CANCELED);
+    }
+
+    protected void error() {
+        endTime = SystemClock.elapsedRealtime();
+        setStatus(STATUS_ERROR);
+    }
+
+    protected void successful() {
+        endTime = SystemClock.elapsedRealtime();
+        setStatus(STATUS_SUCCESS);
     }
 
     protected void completed() {

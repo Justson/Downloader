@@ -39,10 +39,10 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
     private final Executor mExecutor;
     private final Executor mExecutor0;
     private volatile Dispatch mMainQueue = null;
-
+    private final Object mLock = new Object();
 
     private DownloadSubmitterImpl() {
-        ThreadPoolExecutor service = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
+        ThreadPoolExecutor service = new ThreadPoolExecutor(1, 1, 30L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
             @Override
             public Thread newThread(@NonNull Runnable r) {
                 return new Thread(r);
@@ -50,7 +50,7 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
         });
         service.allowCoreThreadTimeOut(true);
         this.mExecutor = service;
-        service = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
+        service = new ThreadPoolExecutor(1, 1, 30L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
             @Override
             public Thread newThread(@NonNull Runnable r) {
                 return new Thread(r);
@@ -66,7 +66,7 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
 
     @Override
     public boolean submit(DownloadTask downloadTask) {
-        synchronized (Downloader.class) {
+        synchronized (mLock) {
             if (TextUtils.isEmpty(downloadTask.getUrl())) {
                 return false;
             }
@@ -135,11 +135,10 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
     }
 
 
-    private static class DownloadStartTask implements Runnable {
+    private class DownloadStartTask implements Runnable {
 
-        private DownloadTask mDownloadTask;
-        private DownloadNotifier mDownloadNotifier;
-        private Downloader mDownloader;
+        private final DownloadTask mDownloadTask;
+        private final Downloader mDownloader;
 
         public DownloadStartTask(DownloadTask downloadTask, Downloader downloader) {
             this.mDownloadTask = downloadTask;
@@ -153,6 +152,7 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
                     try {
                         Annotation annotation = mDownloadTask.getDownloadingListener().getClass().getDeclaredMethod("onProgress", String.class, long.class, long.class, long.class).getAnnotation(DownloadingListener.MainThread.class);
                         boolean mCallbackInMainThread = null != annotation;
+                        mDownloader.mCallbackInMainThread = mCallbackInMainThread;
                         Runtime.getInstance().log(TAG, " callback in main-Thread:" + mCallbackInMainThread);
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -192,8 +192,8 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
                     executeOnExecutor(SERIAL_EXECUTOR);
                 }
             } catch (Throwable throwable) {
-                if (null != mDownloadTask && !TextUtils.isEmpty(mDownloadTask.getUrl())) {
-                    synchronized (Downloader.class) {
+                if (!TextUtils.isEmpty(mDownloadTask.getUrl())) {
+                    synchronized (mLock) {
                         if (!TextUtils.isEmpty(mDownloadTask.getUrl())) {
                             ExecuteTasksMap.getInstance().removeTask(mDownloadTask.getUrl());
                         }
@@ -216,7 +216,7 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
 
     }
 
-    private static final class DownloadTaskOver implements Runnable {
+    private final class DownloadTaskOver implements Runnable {
 
         private final int mResult;
         private final Downloader mDownloader;
@@ -235,8 +235,6 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
             DownloadTask downloadTask = this.mDownloadTask;
             try {
                 if (mResult == ERROR_USER_PAUSE) {
-                    downloadTask.setStatus(STATUS_PAUSED);
-                    downloadTask.pause();
                     if (null != downloadTask.getDownloadListener()) {
                         doCallback(mResult);
                     }
@@ -245,14 +243,11 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
                     }
                     return;
                 } else if (mResult == ERROR_USER_CANCEL) {
-                    downloadTask.setStatus(DownloadTask.STATUS_CANCELED);
                     downloadTask.completed();
                 } else if (mResult == ERROR_LOAD) {
-                    downloadTask.setStatus(DownloadTask.STATUS_ERROR);
                     downloadTask.completed();
                 } else {
                     downloadTask.completed();
-                    downloadTask.setStatus(DownloadTask.STATUS_COMPLETED);
                 }
                 boolean isCancelDispose = doCallback(mResult);
                 // Error
@@ -281,7 +276,7 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
                     throwable.printStackTrace();
                 }
             } finally {
-                synchronized (Downloader.class) {
+                synchronized (mLock) {
                     ExecuteTasksMap.getInstance().removeTask(downloadTask.getUrl());
                 }
                 destroyTask();

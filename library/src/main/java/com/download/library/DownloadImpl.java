@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -84,9 +83,9 @@ public final class DownloadImpl {
 
     public File call(@NonNull DownloadTask downloadTask) {
         safe(downloadTask);
-        Callable<File> callable = new SyncDownloader(downloadTask);
         try {
-            return callable.call();
+            File file = DownloadSubmitterImpl.getInstance().submit0(downloadTask);
+            return file;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -95,8 +94,8 @@ public final class DownloadImpl {
 
     public File callEx(@NonNull DownloadTask downloadTask) throws Exception {
         safe(downloadTask);
-        Callable<File> callable = new SyncDownloader(downloadTask);
-        return callable.call();
+        File file = DownloadSubmitterImpl.getInstance().submit0(downloadTask);
+        return file;
     }
 
     public DownloadTask cancel(@NonNull String url) {
@@ -161,6 +160,7 @@ public final class DownloadImpl {
                     Runtime.getInstance().logError(TAG, "downloadTask death .");
                     continue;
                 }
+                Runtime.getInstance().logError(TAG, "downloadTask:" + downloadTask.getUrl());
                 enqueue(downloadTask);
             }
         }
