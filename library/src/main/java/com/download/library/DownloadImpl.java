@@ -98,14 +98,14 @@ public final class DownloadImpl {
         return file;
     }
 
-    public DownloadTask cancel(@NonNull String url) {
+    public synchronized DownloadTask cancel(@NonNull String url) {
         DownloadTask downloadTask = null;
         try {
             downloadTask = ExecuteTasksMap.getInstance().cancelTask(url);
         } finally {
             DownloadTask task = mTasks.get(url);
             if (task != null && task.getStatus() == DownloadTask.STATUS_PAUSED) {
-                task.setStatus(DownloadTask.STATUS_CANCELED);
+                task.cancel();
                 DownloadNotifier.cancel(task);
                 downloadTask = task;
             }
@@ -114,7 +114,7 @@ public final class DownloadImpl {
         return downloadTask;
     }
 
-    public List<DownloadTask> cancelAll() {
+    public synchronized List<DownloadTask> cancelAll() {
         List<DownloadTask> downloadTasks = new ArrayList<>();
         try {
             List<DownloadTask> runningTask = ExecuteTasksMap.getInstance().cancelTasks();
@@ -128,7 +128,7 @@ public final class DownloadImpl {
                 for (Map.Entry<String, DownloadTask> entry : sets) {
                     DownloadTask downloadTask = entry.getValue();
                     if (downloadTask != null && downloadTask.getStatus() == DownloadTask.STATUS_PAUSED) {
-                        downloadTask.setStatus(DownloadTask.STATUS_CANCELED);
+                        downloadTask.cancel();
                         DownloadNotifier.cancel(downloadTask);
                         downloadTasks.add(downloadTask);
                     }
@@ -139,7 +139,7 @@ public final class DownloadImpl {
         return downloadTasks;
     }
 
-    public DownloadTask pause(@NonNull String url) {
+    public synchronized DownloadTask pause(@NonNull String url) {
         DownloadTask downloadTask = ExecuteTasksMap.getInstance().pauseTask(url);
         if (downloadTask != null) {
             mTasks.put(downloadTask.getUrl(), downloadTask);
@@ -147,13 +147,13 @@ public final class DownloadImpl {
         return downloadTask;
     }
 
-    public void resumeAll() {
+    public synchronized void resumeAll() {
         ConcurrentHashMap<String, DownloadTask> tasks = this.mTasks;
         if (tasks.size() <= 0) {
             return;
         }
         Set<Map.Entry<String, DownloadTask>> sets = tasks.entrySet();
-        if (sets != null && sets.size() > 0) {
+        if (sets.size() > 0) {
             for (Map.Entry<String, DownloadTask> entry : sets) {
                 DownloadTask downloadTask = entry.getValue();
                 if (null == downloadTask || null == downloadTask.getContext() || TextUtils.isEmpty(downloadTask.getUrl())) {
@@ -165,9 +165,10 @@ public final class DownloadImpl {
             }
         }
         cleanTasksCache();
+
     }
 
-    public boolean resume(@NonNull String url) {
+    public synchronized boolean resume(@NonNull String url) {
         DownloadTask downloadTask = mTasks.remove(url);
         if (null == downloadTask || null == downloadTask.getContext() || TextUtils.isEmpty(downloadTask.getUrl())) {
             Runtime.getInstance().logError(TAG, "downloadTask death .");
@@ -175,14 +176,15 @@ public final class DownloadImpl {
         }
         enqueue(downloadTask);
         return true;
+
     }
 
-    private void cleanTasksCache() {
+    private synchronized void cleanTasksCache() {
         ConcurrentHashMap<String, DownloadTask> tasks = this.mTasks;
         tasks.clear();
     }
 
-    private void remove(@NonNull String url) {
+    private synchronized void remove(@NonNull String url) {
         ConcurrentHashMap<String, DownloadTask> tasks = this.mTasks;
         tasks.remove(url);
     }

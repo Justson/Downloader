@@ -35,7 +35,6 @@ public interface DownloadListener {
 	 * @param mimetype           资源的媒体类型
 	 * @param contentLength      文件长度
 	 * @param extra              下载配置
-	 * @return true              处理了该下载事件 ， false 交给 Downloader 下载
 	 */
 	@MainThread
 	void onStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength, Extra extra);

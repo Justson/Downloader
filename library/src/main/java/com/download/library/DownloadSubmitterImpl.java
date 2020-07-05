@@ -7,6 +7,7 @@ import android.os.Looper;
 import android.os.Process;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.download.library.queue.Dispatch;
 
@@ -66,17 +67,18 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
 
     @Override
     public boolean submit(DownloadTask downloadTask) {
-        synchronized (mLock) {
-            if (TextUtils.isEmpty(downloadTask.getUrl())) {
-                return false;
-            }
-            if (ExecuteTasksMap.getInstance().exist(downloadTask.getUrl())) {
-                return false;
-            }
-            Downloader downloader = (Downloader) Downloader.create(downloadTask);
-            ExecuteTasksMap.getInstance().addTask(downloadTask.getUrl(), downloader);
-            execute(new DownloadStartTask(downloadTask, downloader));
+        if (TextUtils.isEmpty(downloadTask.getUrl())) {
+            return false;
         }
+        synchronized (mLock) {
+            if (ExecuteTasksMap.getInstance().exist(downloadTask.getUrl())) {
+                Log.e(TAG, "task exists:" + downloadTask.getUrl());
+                return false;
+            }
+        }
+        Downloader downloader = (Downloader) Downloader.create(downloadTask);
+        ExecuteTasksMap.getInstance().addTask(downloadTask.getUrl(), downloader);
+        execute(new DownloadStartTask(downloadTask, downloader));
         return true;
     }
 
@@ -208,8 +210,17 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
             threadPoolExecutor.execute(new Runnable() {
                 @Override
                 public void run() {
-                    int result = mDownloader.doInBackground();
-                    DownloadSubmitterImpl.getInstance().execute0(new DownloadTaskOver(result, mDownloader, mDownloadTask));
+                    try {
+                        int result = mDownloader.doInBackground();
+                        DownloadSubmitterImpl.getInstance().execute0(new DownloadTaskOver(result, mDownloader, mDownloadTask));
+                    } catch (Throwable throwable) {
+                        throwable.printStackTrace();
+                        synchronized (mLock) {
+                            if (!TextUtils.isEmpty(mDownloadTask.getUrl())) {
+                                ExecuteTasksMap.getInstance().removeTask(mDownloadTask.getUrl());
+                            }
+                        }
+                    }
                 }
             });
         }
@@ -259,7 +270,9 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
                 }
                 if (downloadTask.isEnableIndicator()) {
                     if (isCancelDispose) {
-                        mDownloadNotifier.cancel();
+                        if (null != mDownloadNotifier) {
+                            mDownloadNotifier.cancel();
+                        }
                         return;
                     }
                     if (null != mDownloadNotifier) {

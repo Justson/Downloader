@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (DownloadImpl.getInstance().pausedTasksTotals() > 0) {
                     DownloadImpl.getInstance().resumeAll();
-                    downloadAdapter.notifyDataSetChanged();
+//                    downloadAdapter.notifyDataSetChanged();
                 }
             }
         });

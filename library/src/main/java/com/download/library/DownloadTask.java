@@ -57,6 +57,7 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
     boolean uniquePath = true;
     int connectTimes = 0;
     volatile long loaded = 0L;
+    String redirect = "";
 
     /**
      * 通知
@@ -455,15 +456,26 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
     }
 
     protected void createNotifier() {
-        DownloadTask downloadTask = this;
-        Context mContext = downloadTask.getContext().getApplicationContext();
-        if (null != mContext && downloadTask.isEnableIndicator()) {
-            mDownloadNotifier = new DownloadNotifier(mContext, downloadTask.getId());
-            mDownloadNotifier.initBuilder(downloadTask);
+        if (mDownloadNotifier != null) {
+            mDownloadNotifier.initBuilder(this);
+        } else {
+            Context mContext = this.getContext().getApplicationContext();
+            if (null != mContext && this.isEnableIndicator()) {
+                mDownloadNotifier = new DownloadNotifier(mContext, this.getId());
+                mDownloadNotifier.initBuilder(this);
+            }
         }
         if (null != this.mDownloadNotifier) {
             mDownloadNotifier.onPreDownload();
         }
+    }
+
+    String getRedirect() {
+        return redirect;
+    }
+
+    void setRedirect(String redirect) {
+        this.redirect = redirect;
     }
 
     @Override

@@ -139,6 +139,8 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
     protected boolean mCallbackInMainThread = false;
     protected boolean quickProgress = false;
 
+    private StringBuffer mDownloadMessage = new StringBuffer();
+
     static {
         DOWNLOAD_MESSAGE.append(ERROR_NETWORK_CONNECTION, "Network connection error . ");
         DOWNLOAD_MESSAGE.append(ERROR_RESPONSE_STATUS, "Response code non-200 or non-206 . ");
@@ -241,11 +243,20 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
                 }
                 if (ioException == null) {
                     break;
+                } else {
+                    mDownloadMessage.append("\n").append("download error message: ").append(ioException.getMessage());
                 }
                 if (i + 1 <= downloadTask.retry) {
+                    mDownloadMessage.append("\n").append("download error , retry ").append(i + 1);
                     Runtime.getInstance().logError(TAG, "download error , retry " + (i + 1));
                 }
             }
+
+            mDownloadMessage.append("\n").append("mLoaded=").append(mLoaded);
+            mDownloadMessage.append("\n").append("mLastLoaded=").append(mLastLoaded);
+            mDownloadMessage.append("\n").append("mLoaded+mLastLoaded=").append(mLoaded + mLastLoaded);
+            mDownloadMessage.append("\n").append("totals=").append(this.mTotals);
+            Runtime.getInstance().log(TAG, "\n\n\n" + mDownloadMessage.toString());
         } finally {
             Thread.currentThread().setName(name);
         }
@@ -255,12 +266,19 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
     private int doDownload() throws IOException {
         DownloadTask downloadTask = this.mDownloadTask;
         downloadTask.updateTime(this.mBeginTime);
+        mLoaded = 0L;
         downloadTask.resetConnectTimes();
         int redirectionCount = 0;
-        URL url = new URL(downloadTask.getUrl());
+        URL url;
+        if (TextUtils.isEmpty(downloadTask.redirect)) {
+            url = new URL(downloadTask.getUrl());
+        } else {
+            url = new URL(downloadTask.getRedirect());
+        }
         HttpURLConnection httpURLConnection = null;
         try {
             for (; redirectionCount++ <= MAX_REDIRECTS; ) {
+                mDownloadMessage.append("\n").append("redirectionCount=").append(redirectionCount);
                 if (null != httpURLConnection) {
                     httpURLConnection.disconnect();
                 }
@@ -295,7 +313,9 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
                 final boolean finishKnown = (isEncodingChunked && hasLength || !isEncodingChunked && !hasLength);
                 int responseCode = httpURLConnection.getResponseCode();
                 Runtime.getInstance().log(TAG, "responseCode:" + responseCode);
+                mDownloadMessage.append("\n").append("responseCode=").append(responseCode);
                 if (responseCode == HTTP_PARTIAL && !hasLength) {
+                    downloadTask.successful();
                     return SUCCESSFUL;
                 }
                 switch (responseCode) {
@@ -304,6 +324,8 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
                             Runtime.getInstance().logError(TAG, " error , giving up ,"
                                     + "  EncodingChunked:" + isEncodingChunked
                                     + "  hasLength:" + hasLength + " response length:" + contentLength + " responseCode:" + responseCode);
+                            downloadTask.error();
+                            downloadTask.error();
                             return ERROR_LOAD;
                         }
                         this.mTotals = contentLength;
@@ -366,6 +388,7 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
                         }
                         saveEtag(httpURLConnection);
                         downloadTask.setTotalsLength(this.mTotals);
+                        mDownloadMessage.append("\n").append("totals=").append(this.mTotals);
                         return transferData(getInputStream(httpURLConnection),
                                 new LoadingRandomAccessFile(downloadTask.getFile()),
                                 false);
@@ -391,12 +414,14 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
                             return ERROR_STORAGE;
                         }
                         Runtime.getInstance().log(TAG, " last:" + mLastLoaded + " totals:" + this.mTotals);
+                        mDownloadMessage.append("\n").append(" last=").append(mLastLoaded).append(" totals=").append(this.mTotals);
                         return transferData(getInputStream(httpURLConnection),
                                 new LoadingRandomAccessFile(downloadTask.getFile()),
                                 true);
                     case HTTP_RANGE_NOT_SATISFIABLE:
                         if (null != downloadTask.getFile()) {
                             Runtime.getInstance().log(TAG, " range not satisfiable .");
+                            mDownloadMessage.append("\n").append(" range not satisfiable .");
                             downloadTask.getFile().delete();
                             downloadTask.getFile().createNewFile();
                         }
@@ -410,7 +435,8 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
                             downloadTask.error();
                             return ERROR_SERVICE;
                         } else {
-                            Runtime.getInstance().log(TAG, "redirect:" + location);
+                            Runtime.getInstance().log(TAG, "redirect:" + location + "  origin:" + downloadTask.getUrl());
+                            mDownloadMessage.append("\n").append(" redirect:" + location);
                         }
                         try {
                             url = new URL(url, location);
@@ -418,6 +444,8 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
                             downloadTask.error();
                             return ERROR_SERVICE;
                         }
+                        Runtime.getInstance().log(TAG, "setRedirect:" + url.toString());
+                        downloadTask.setRedirect(url.toString());
                         continue;
                     case HTTP_NOT_FOUND:
                         return ERROR_RESOURCE_NOT_FOUND;
@@ -432,6 +460,7 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
                         return ERROR_RESPONSE_STATUS;
                 }
             }
+            downloadTask.error();
             return ERROR_TOO_MANY_REDIRECTS;
         } finally {
             if (null != httpURLConnection) {
@@ -444,7 +473,7 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
         if (null != downloadTask.getFile() && downloadTask.getFile().length() > 0) {
             httpURLConnection.setRequestProperty("Range", "bytes=" + (mLastLoaded = downloadTask.getFile().length()) + "-");
         }
-        Runtime.getInstance().log(TAG, "range:" + mLastLoaded);
+        mDownloadMessage.append("\n").append("range=").append(mLastLoaded);
         httpURLConnection.setRequestProperty("Connection", "close");
     }
 
@@ -465,6 +494,7 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
                         downloadTask.setFileSafe(renameTarget);
                         updateNotifierTitle();
                         Runtime.getInstance().logError(TAG, "origin:" + originFile.getName() + " rename:" + renameTarget.getName());
+                        mDownloadMessage.append("\n").append("origin:").append(originFile.getName()).append(" rename:").append(renameTarget.getName());
                         originFile.delete();
                     } else {
                     }
