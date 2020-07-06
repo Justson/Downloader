@@ -404,7 +404,10 @@ public class MainActivity extends AppCompatActivity {
 					} else if (downloadBean.getStatus() == DownloadTask.STATUS_DOWNLOADING) {
                         nativeDownloadViewHolder.mStatusButton.setText("暂停");
                         nativeDownloadViewHolder.mStatusButton.setEnabled(true);
-                    } /*else if (downloadBean.getStatus() == DownloadTask.STATUS_PAUSED) {
+                    } else if (downloadBean.getStatus() == DownloadTask.STATUS_PAUSED) {
+                        nativeDownloadViewHolder.mStatusButton.setText("继续");
+                        nativeDownloadViewHolder.mStatusButton.setEnabled(true);
+                    }  /*else if (downloadBean.getStatus() == DownloadTask.STATUS_PAUSED) {
                         nativeDownloadViewHolder.mStatusButton.setText("继续");
                         nativeDownloadViewHolder.mStatusButton.setEnabled(true);
                     } else if (downloadBean.getStatus() == DownloadTask.STATUS_CANCELED) {

@@ -273,7 +273,6 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
     private int doDownload() throws IOException {
         DownloadTask downloadTask = this.mDownloadTask;
         downloadTask.updateTime(this.mBeginTime);
-        mLoaded = 0L;
         downloadTask.resetConnectTimes();
         int redirectionCount = 0;
         URL url;
@@ -358,11 +357,7 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
                                             downloadTask.getFile(), downloadTask.getTargetCompareMD5(), Runtime.getInstance().md5(downloadTask.getFile()));
                                     if (compareResult == COMPARE_RESULT_SUCCESSFUL) {
                                         mLastLoaded = contentLength;
-                                        if (mCallbackInMainThread) {
-                                            publishProgress(1);
-                                        } else {
-                                            onProgressUpdate(1);
-                                        }
+                                        publishProgressUpdate(1);
                                         downloadTask.successful();
                                         return SUCCESSFUL;
                                     } else if (compareResult == COMPARE_RESULT_REDOWNLOAD_COVER) {
@@ -689,6 +684,7 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
         BufferedInputStream bis = new BufferedInputStream(inputStream, BUFFER_SIZE);
         RandomAccessFile out = randomAccessFile;
         DownloadTask downloadTask = mDownloadTask;
+        mLoaded = 0L;
         try {
             if (isSeek) {
                 out.seek(out.length());
@@ -813,39 +809,27 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
             if (null != downloadTask) {
                 downloadTask.setLoaded(mLastLoaded + mLoaded);
             }
-            progress();
+            onProgress();
         }
     }
 
     private void progressFinaly() {
         long currentTime = SystemClock.elapsedRealtime();
         mLastTime = currentTime;
-        if (mCallbackInMainThread) {
-            publishProgress(1);
-        } else {
-            onProgressUpdate(1);
-        }
+        publishProgressUpdate(1);
     }
 
-    private void progress() {
+    private void onProgress() {
         if (!enableProgress) {
             return;
         }
         if (quickProgress) {
             long currentTime = SystemClock.elapsedRealtime();
             if (currentTime - mLastTime < 1200) {
-                if (mCallbackInMainThread) {
-                    publishProgress(0);
-                } else {
-                    onProgressUpdate(0);
-                }
+                publishProgressUpdate(0);
             } else {
                 mLastTime = currentTime;
-                if (mCallbackInMainThread) {
-                    publishProgress(1);
-                } else {
-                    onProgressUpdate(1);
-                }
+                publishProgressUpdate(1);
             }
         } else {
             long currentTime = SystemClock.elapsedRealtime();
@@ -853,11 +837,15 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
                 return;
             }
             mLastTime = currentTime;
-            if (mCallbackInMainThread) {
-                publishProgress(1);
-            } else {
-                onProgressUpdate(1);
-            }
+            publishProgressUpdate(1);
+        }
+    }
+
+    private void publishProgressUpdate(int i) {
+        if (mCallbackInMainThread) {
+            publishProgress(i);
+        } else {
+            onProgressUpdate(i);
         }
     }
 
