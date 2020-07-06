@@ -246,9 +246,6 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
             DownloadTask downloadTask = this.mDownloadTask;
             try {
                 if (mResult == ERROR_USER_PAUSE) {
-                    if (null != downloadTask.getDownloadListener()) {
-                        doCallback(mResult);
-                    }
                     if (null != mDownloadNotifier) {
                         mDownloadNotifier.onDownloadPaused();
                     }

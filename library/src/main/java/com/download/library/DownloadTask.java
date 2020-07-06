@@ -47,8 +47,8 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
     public static final int STATUS_NEW = 1000;
     public static final int STATUS_PENDDING = 1001;
     public static final int STATUS_DOWNLOADING = 1002;
-    public static final int STATUS_PAUSED = 1003;
-    public static final int STATUS_PAUSING = 1004;
+    public static final int STATUS_PAUSING = 1003;
+    public static final int STATUS_PAUSED = 1004;
     public static final int STATUS_SUCCESSFUL = 1005;
     public static final int STATUS_CANCELED = 1006;
     public static final int STATUS_ERROR = 1007;
