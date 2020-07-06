@@ -62,6 +62,7 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
     volatile long loaded = 0L;
     String redirect = "";
     DownloadStatusListener mDownloadStatusListener;
+    Throwable mThrowable;
 
     /**
      * 通知
@@ -518,6 +519,10 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
         }
     }
 
+    boolean isCompleted() {
+        return getStatus() == STATUS_CANCELED || getStatus() == STATUS_PAUSED || getStatus() == STATUS_SUCCESSFUL || getStatus() == STATUS_ERROR;
+    }
+
     public boolean isUniquePath() {
         return uniquePath;
     }
@@ -533,5 +538,13 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
 
     void setDownloadStatusListener(DownloadStatusListener downloadStatusListener) {
         mDownloadStatusListener = downloadStatusListener;
+    }
+
+    Throwable getThrowable() {
+        return mThrowable;
+    }
+
+    void setThrowable(Throwable throwable) {
+        mThrowable = throwable;
     }
 }

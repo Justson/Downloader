@@ -250,6 +250,7 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
                 } else {
                     if (i == downloadTask.retry) {
                         downloadTask.error();
+                        mDownloadTask.setThrowable(ioException);
                     }
                     mDownloadMessage.append("\n").append("download error message: ").append(ioException.getMessage());
                 }
@@ -627,7 +628,6 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
             Runtime.getInstance().log(TAG, "Etag:" + eTag);
             httpURLConnection.setRequestProperty("If-Match", getEtag());
         }
-        Runtime.getInstance().log(TAG, "settingHeaders");
     }
 
 
@@ -661,21 +661,6 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
         } catch (Throwable e) {
             e.printStackTrace();
         }
-    }
-
-
-    private boolean doCallback(Integer code) {
-        DownloadListener mDownloadListener = null;
-        DownloadTask downloadTask = this.mDownloadTask;
-        if (null == (mDownloadListener = downloadTask.getDownloadListener())) {
-            return false;
-        }
-        if (Runtime.getInstance().isDebug() && null != this.mThrowable) {
-            this.mThrowable.printStackTrace();
-        }
-        return mDownloadListener.onResult(code <= SUCCESSFUL ? null
-                        : new DownloadException(code, "failed , cause:" + DOWNLOAD_MESSAGE.get(code)), downloadTask.getFileUri(),
-                downloadTask.getUrl(), mDownloadTask);
     }
 
 

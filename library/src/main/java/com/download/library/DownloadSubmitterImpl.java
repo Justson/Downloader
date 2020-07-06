@@ -83,25 +83,20 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
     }
 
     @Override
-    public File submit0(final DownloadTask downloadTask) throws Exception {
-//        RunnableFuture<File> future = new FutureTask<File>(new Callable<File>() {
-//            @Override
-//            public File call() throws Exception {
-//                synchronized (Downloader.class) {
-//                    if (TextUtils.isEmpty(downloadTask.getUrl())) {
-//                        return null;
-//                    }
-//                    if (ExecuteTasksMap.getInstance().exist(downloadTask.getUrl())) {
-//                        return null;
-//                    }
-//                    Downloader downloader = (Downloader) Downloader.create(downloadTask);
-//                    ExecuteTasksMap.getInstance().addTask(downloadTask.getUrl(), downloader);
-//                    new DownloadStartTask(downloadTask, downloader).run();
-//                }
-//                return null;
-//            }
-//        });
-        return null;
+    public File submit0(@NonNull final DownloadTask downloadTask) throws Exception {
+        boolean submit = submit(downloadTask);
+        if (!submit) {
+            return null;
+        }
+        synchronized (downloadTask) {
+            while (!downloadTask.isCompleted()) {
+                downloadTask.wait(2000L);
+            }
+        }
+        if (null != downloadTask.getThrowable()) {
+            throw (Exception) downloadTask.getThrowable();
+        }
+        return downloadTask.isSuccessful() ? downloadTask.getFile() : null;
     }
 
     void execute(@NonNull final Runnable command) {
@@ -134,6 +129,19 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
             }
         }
         return mMainQueue;
+    }
+
+    private void releaseTask(final DownloadTask downloadTask) {
+        if (!TextUtils.isEmpty(downloadTask.getUrl())) {
+            synchronized (mLock) {
+                if (!TextUtils.isEmpty(downloadTask.getUrl())) {
+                    ExecuteTasksMap.getInstance().removeTask(downloadTask.getUrl());
+                }
+            }
+        }
+        synchronized (downloadTask) {
+            downloadTask.notifyAll();
+        }
     }
 
 
@@ -194,17 +202,12 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
                     executeOnExecutor(SERIAL_EXECUTOR);
                 }
             } catch (Throwable throwable) {
-                if (!TextUtils.isEmpty(mDownloadTask.getUrl())) {
-                    synchronized (mLock) {
-                        if (!TextUtils.isEmpty(mDownloadTask.getUrl())) {
-                            ExecuteTasksMap.getInstance().removeTask(mDownloadTask.getUrl());
-                        }
-                    }
-                }
+                releaseTask(mDownloadTask);
                 throwable.printStackTrace();
                 throw throwable;
             }
         }
+
 
         private void executeOnExecutor(Executor threadPoolExecutor) {
             threadPoolExecutor.execute(new Runnable() {
@@ -215,11 +218,7 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
                         DownloadSubmitterImpl.getInstance().execute0(new DownloadTaskOver(result, mDownloader, mDownloadTask));
                     } catch (Throwable throwable) {
                         throwable.printStackTrace();
-                        synchronized (mLock) {
-                            if (!TextUtils.isEmpty(mDownloadTask.getUrl())) {
-                                ExecuteTasksMap.getInstance().removeTask(mDownloadTask.getUrl());
-                            }
-                        }
+                        releaseTask(mDownloadTask);
                     }
                 }
             });
@@ -286,9 +285,7 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
                     throwable.printStackTrace();
                 }
             } finally {
-                synchronized (mLock) {
-                    ExecuteTasksMap.getInstance().removeTask(downloadTask.getUrl());
-                }
+                releaseTask(downloadTask);
                 destroyTask();
             }
         }

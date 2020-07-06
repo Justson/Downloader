@@ -82,33 +82,33 @@ public class MainActivity extends AppCompatActivity {
                 List<DownloadTask> downloadTasks = DownloadImpl.getInstance().cancelAll();
             }
         });
-       /* new Thread(new Runnable() {
+        new Thread(new Runnable() {
             @Override
             public void run() {
-                *//**
-         * 文件同步下载
-         *//*
+                /**
+                 *  文件同步下载
+                 */
                 File file = DownloadImpl.getInstance()
-		                .with(getApplicationContext())
-		                .target(new File(getCacheDir(),"t01a16bcd9acd07d029.png"))
-		                .url("http://www.httpwatch.com/httpgallery/chunked/chunkedimage.aspx?0.04400023248109086\", \"http://www.httpwatch.com/httpgallery/chunked/chunkedimage.aspx?0.04400023248109086")
-		                .setDownloadListenerAdapter(new DownloadListenerAdapter() {
-                    @Override
-                    public void onProgress(String url, long downloaded, long length, long usedTime) {
-                        super.onProgress(url, downloaded, length, usedTime);
-                        Log.i(TAG, " downloaded:" + downloaded);
-                    }
+                        .with(getApplicationContext())
+                        .target(new File(getCacheDir(), "t01a16bcd9acd07d029.png"))
+                        .url("http://www.httpwatch.com/httpgallery/chunked/chunkedimage.aspx?0.04400023248109086")
+                        .setDownloadListenerAdapter(new DownloadListenerAdapter() {
+                            @Override
+                            public void onProgress(String url, long downloaded, long length, long usedTime) {
+                                super.onProgress(url, downloaded, length, usedTime);
+                                Log.i(TAG, " downloaded:" + downloaded);
+                            }
 
-                    @Override
-                    public boolean onResult(Throwable throwable, Uri path, String url, Extra extra) {
-                        Log.i(TAG, "downloaded onResult isSuccess:" + (throwable == null) + " url:" + url + " Thread:" + Thread.currentThread().getName() + " uri:" + path.toString());
+                            @Override
+                            public boolean onResult(Throwable throwable, Uri path, String url, Extra extra) {
+                                Log.i(TAG, "downloaded onResult isSuccess:" + (throwable == null) + " url:" + url + " Thread:" + Thread.currentThread().getName() + " uri:" + path.toString());
 
-                        return super.onResult(throwable, path, url, extra);
-                    }
-                }).get();
-                Log.i(TAG, " download success:" + ((File) file).length());
+                                return super.onResult(throwable, path, url, extra);
+                            }
+                        }).get();
+                Log.i(TAG, " download success file length:" + byte2FitMemorySize(((File) file).length()) + " name:" + file.getName());
             }
-        }).start();*/
+        }).start();
         /*DownloadImpl.getInstance()
                 .with(getApplicationContext())
                 .setEnableIndicator(true)//启动通知
@@ -268,10 +268,10 @@ public class MainActivity extends AppCompatActivity {
             Log.e(TAG, "status:" + downloadBean.getStatus() + " position:" + i);
             if (downloadBean.getStatus() == DownloadTask.STATUS_NEW) {
                 nativeDownloadViewHolder.mStatusButton.setText("开始");
-            }else if (downloadBean.getStatus() == DownloadTask.STATUS_PAUSING) {
-				nativeDownloadViewHolder.mStatusButton.setText("暂停中...");
-				nativeDownloadViewHolder.mStatusButton.setEnabled(false);
-			} else if (downloadBean.getStatus() == DownloadTask.STATUS_PENDDING) {
+            } else if (downloadBean.getStatus() == DownloadTask.STATUS_PAUSING) {
+                nativeDownloadViewHolder.mStatusButton.setText("暂停中...");
+                nativeDownloadViewHolder.mStatusButton.setEnabled(false);
+            } else if (downloadBean.getStatus() == DownloadTask.STATUS_PENDDING) {
                 nativeDownloadViewHolder.mStatusButton.setText("等待中...");
                 nativeDownloadViewHolder.mStatusButton.setEnabled(false);
             } else if (downloadBean.getStatus() == DownloadTask.STATUS_PAUSED) {
@@ -399,9 +399,9 @@ public class MainActivity extends AppCompatActivity {
                         nativeDownloadViewHolder.mStatusButton.setText("等待中...");
                         nativeDownloadViewHolder.mStatusButton.setEnabled(false);
                     } else if (status == DownloadTask.STATUS_PAUSING) {
-						nativeDownloadViewHolder.mStatusButton.setText("暂停中...");
-						nativeDownloadViewHolder.mStatusButton.setEnabled(false);
-					} else if (downloadBean.getStatus() == DownloadTask.STATUS_DOWNLOADING) {
+                        nativeDownloadViewHolder.mStatusButton.setText("暂停中...");
+                        nativeDownloadViewHolder.mStatusButton.setEnabled(false);
+                    } else if (downloadBean.getStatus() == DownloadTask.STATUS_DOWNLOADING) {
                         nativeDownloadViewHolder.mStatusButton.setText("暂停");
                         nativeDownloadViewHolder.mStatusButton.setEnabled(true);
                     } else if (downloadBean.getStatus() == DownloadTask.STATUS_PAUSED) {
