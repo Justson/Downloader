@@ -84,6 +84,9 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
 
     @Override
     public File submit0(@NonNull final DownloadTask downloadTask) throws Exception {
+        if (Looper.getMainLooper() == Looper.myLooper()) {
+            throw new RuntimeException("Sync download must call it in the non main-Thread ");
+        }
         boolean submit = submit(downloadTask);
         if (!submit) {
             return null;
