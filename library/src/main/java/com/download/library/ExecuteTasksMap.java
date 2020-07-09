@@ -62,7 +62,7 @@ public final class ExecuteTasksMap {
 
 	List<DownloadTask> cancelTasks() {
 		Set<Map.Entry<String, ExecuteTask>> sets = mTasks.entrySet();
-		if (null != sets && sets.size() > 0) {
+		if (sets.size() > 0) {
 			ArrayList<DownloadTask> downloadTasks = new ArrayList<>(sets.size());
 			for (Map.Entry<String, ExecuteTask> entry : sets) {
 				DownloadTask downloadTask = entry.getValue().cancelDownload();
@@ -77,7 +77,7 @@ public final class ExecuteTasksMap {
 
 	List<DownloadTask> pauseTasks() {
 		Set<Map.Entry<String, ExecuteTask>> sets = mTasks.entrySet();
-		if (null != sets && sets.size() > 0) {
+		if (sets.size() > 0) {
 			ArrayList<DownloadTask> downloadTasks = new ArrayList<>(sets.size());
 			for (Map.Entry<String, ExecuteTask> entry : sets) {
 				DownloadTask downloadTask = entry.getValue().pauseDownload();

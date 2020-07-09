@@ -22,20 +22,25 @@ import android.net.Uri;
  * @author cenxiaozhong
  * @date 2018/2/11
  */
-public class DownloadListenerAdapter implements DownloadListener, DownloadingListener {
+public class DownloadListenerAdapter implements DownloadListener, DownloadingListener, DownloadStatusListener {
 
-	@MainThread
-	@Override
-	public void onStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength, Extra extra) {
-	}
+    @MainThread
+    @Override
+    public void onStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength, Extra extra) {
+    }
 
-	@Override
-	public void onProgress(String url, long downloaded, long length, long usedTime) {
-	}
+    @Override
+    public void onProgress(String url, long downloaded, long length, long usedTime) {
+    }
 
-	@MainThread
-	@Override
-	public boolean onResult(Throwable throwable, Uri path, String url, Extra extra) {
-		return false;
-	}
+    @MainThread
+    @Override
+    public boolean onResult(Throwable throwable, Uri path, String url, Extra extra) {
+        return false;
+    }
+
+    @Override
+    public void onDownloadStatusChanged(Extra extra, int status) {
+
+    }
 }

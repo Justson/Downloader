@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -35,172 +34,175 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class DownloadImpl {
 
-	private static final DownloadImpl sInstance = new DownloadImpl();
-	private final ConcurrentHashMap<String, DownloadTask> mTasks = new ConcurrentHashMap<>();
-	private static Context mContext;
-	public static final String TAG = DownloadImpl.class.getSimpleName();
+    private static final DownloadImpl sInstance = new DownloadImpl();
+    private final ConcurrentHashMap<String, DownloadTask> mTasks = new ConcurrentHashMap<>();
+    private static Context mContext;
+    public static final String TAG = DownloadImpl.class.getSimpleName();
 
-	private DownloadImpl() {
-	}
+    private DownloadImpl() {
+    }
 
-	public static DownloadImpl getInstance() {
-		return sInstance;
-	}
+    public static DownloadImpl getInstance() {
+        return sInstance;
+    }
 
-	public ResourceRequest with(@NonNull Context context) {
-		if (null != context) {
-			mContext = context.getApplicationContext();
-		}
-		return ResourceRequest.with(mContext);
-	}
+    public ResourceRequest with(@NonNull Context context) {
+        if (null != context) {
+            mContext = context.getApplicationContext();
+        }
+        return ResourceRequest.with(mContext);
+    }
 
-	public ResourceRequest with(@NonNull String url) {
-		if (null == mContext) {
-			throw new NullPointerException("Context can't be null . ");
-		}
-		return ResourceRequest.with(mContext).url(url);
-	}
+    public ResourceRequest with(@NonNull String url) {
+        if (null == mContext) {
+            throw new NullPointerException("Context can't be null . ");
+        }
+        return ResourceRequest.with(mContext).url(url);
+    }
 
-	public ResourceRequest with(@NonNull Context context, @NonNull String url) {
-		if (null != context) {
-			mContext = context.getApplicationContext();
-		}
-		return ResourceRequest.with(mContext).url(url);
-	}
+    public ResourceRequest with(@NonNull Context context, @NonNull String url) {
+        if (null != context) {
+            mContext = context.getApplicationContext();
+        }
+        return ResourceRequest.with(mContext).url(url);
+    }
 
-	private void safe(@NonNull DownloadTask downloadTask) {
-		if (null == downloadTask.getContext()) {
-			throw new NullPointerException("context can't be null .");
-		}
-		if (TextUtils.isEmpty(downloadTask.getUrl())) {
-			throw new NullPointerException("url can't be empty .");
-		}
-	}
+    private void safe(@NonNull DownloadTask downloadTask) {
+        if (null == downloadTask.getContext()) {
+            throw new NullPointerException("context can't be null .");
+        }
+        if (TextUtils.isEmpty(downloadTask.getUrl())) {
+            throw new NullPointerException("url can't be empty .");
+        }
+    }
 
-	public boolean enqueue(@NonNull DownloadTask downloadTask) {
-		safe(downloadTask);
-		return new Downloader().download(downloadTask);
-	}
+    public boolean enqueue(@NonNull DownloadTask downloadTask) {
+        safe(downloadTask);
+        return DownloadSubmitterImpl.getInstance().submit(downloadTask);
+    }
 
-	public File call(@NonNull DownloadTask downloadTask) {
-		safe(downloadTask);
-		Callable<File> callable = new SyncDownloader(downloadTask);
-		try {
-			return callable.call();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
+    public File call(@NonNull DownloadTask downloadTask) {
+        safe(downloadTask);
+        try {
+            File file = DownloadSubmitterImpl.getInstance().submit0(downloadTask);
+            return file;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
-	public File callEx(@NonNull DownloadTask downloadTask) throws Exception {
-		safe(downloadTask);
-		Callable<File> callable = new SyncDownloader(downloadTask);
-		return callable.call();
-	}
+    public File callEx(@NonNull DownloadTask downloadTask) throws Exception {
+        safe(downloadTask);
+        File file = DownloadSubmitterImpl.getInstance().submit0(downloadTask);
+        return file;
+    }
 
-	public DownloadTask cancel(@NonNull String url) {
-		DownloadTask downloadTask = null;
-		try {
-			downloadTask = ExecuteTasksMap.getInstance().cancelTask(url);
-		} finally {
-			DownloadTask task = mTasks.get(url);
-			if (task != null && task.getStatus() == DownloadTask.STATUS_PAUSED) {
-				task.setStatus(DownloadTask.STATUS_CANCELED);
-				DownloadNotifier.cancel(task);
-				downloadTask = task;
-			}
-			remove(url);
-		}
-		return downloadTask;
-	}
+    public synchronized DownloadTask cancel(@NonNull String url) {
+        DownloadTask downloadTask = null;
+        try {
+            downloadTask = ExecuteTasksMap.getInstance().cancelTask(url);
+        } finally {
+            DownloadTask task = mTasks.get(url);
+            if (task != null && task.getStatus() == DownloadTask.STATUS_PAUSED) {
+                task.cancel();
+                DownloadNotifier.cancel(task);
+                downloadTask = task;
+            }
+            remove(url);
+        }
+        return downloadTask;
+    }
 
-	public List<DownloadTask> cancelAll() {
-		List<DownloadTask> downloadTasks = new ArrayList<>();
-		try {
-			List<DownloadTask> runningTask = ExecuteTasksMap.getInstance().cancelTasks();
-			if (null != runningTask) {
-				downloadTasks.addAll(runningTask);
-			}
-		} finally {
-			ConcurrentHashMap<String, DownloadTask> tasks = this.mTasks;
-			if (!tasks.isEmpty()) {
-				Set<Map.Entry<String, DownloadTask>> sets = tasks.entrySet();
-				for (Map.Entry<String, DownloadTask> entry : sets) {
-					DownloadTask downloadTask = entry.getValue();
-					if (downloadTask != null && downloadTask.getStatus() == DownloadTask.STATUS_PAUSED) {
-						downloadTask.setStatus(DownloadTask.STATUS_CANCELED);
-						DownloadNotifier.cancel(downloadTask);
-						downloadTasks.add(downloadTask);
-					}
-				}
-			}
-			cleanTasksCache();
-		}
-		return downloadTasks;
-	}
+    public synchronized List<DownloadTask> cancelAll() {
+        List<DownloadTask> downloadTasks = new ArrayList<>();
+        try {
+            List<DownloadTask> runningTask = ExecuteTasksMap.getInstance().cancelTasks();
+            if (null != runningTask) {
+                downloadTasks.addAll(runningTask);
+            }
+        } finally {
+            ConcurrentHashMap<String, DownloadTask> tasks = this.mTasks;
+            if (!tasks.isEmpty()) {
+                Set<Map.Entry<String, DownloadTask>> sets = tasks.entrySet();
+                for (Map.Entry<String, DownloadTask> entry : sets) {
+                    DownloadTask downloadTask = entry.getValue();
+                    if (downloadTask != null && downloadTask.getStatus() == DownloadTask.STATUS_PAUSED) {
+                        downloadTask.cancel();
+                        DownloadNotifier.cancel(downloadTask);
+                        downloadTasks.add(downloadTask);
+                    }
+                }
+            }
+            cleanTasksCache();
+        }
+        return downloadTasks;
+    }
 
-	public DownloadTask pause(@NonNull String url) {
-		DownloadTask downloadTask = ExecuteTasksMap.getInstance().pauseTask(url);
-		if (downloadTask != null) {
-			mTasks.put(downloadTask.getUrl(), downloadTask);
-		}
-		return downloadTask;
-	}
+    public synchronized DownloadTask pause(@NonNull String url) {
+        DownloadTask downloadTask = ExecuteTasksMap.getInstance().pauseTask(url);
+        if (downloadTask != null) {
+            mTasks.put(downloadTask.getUrl(), downloadTask);
+        }
+        return downloadTask;
+    }
 
-	public void resumeAll() {
-		ConcurrentHashMap<String, DownloadTask> tasks = this.mTasks;
-		if (tasks.size() <= 0) {
-			return;
-		}
-		Set<Map.Entry<String, DownloadTask>> sets = tasks.entrySet();
-		if (sets != null && sets.size() > 0) {
-			for (Map.Entry<String, DownloadTask> entry : sets) {
-				DownloadTask downloadTask = entry.getValue();
-				if (null == downloadTask || null == downloadTask.getContext() || TextUtils.isEmpty(downloadTask.getUrl())) {
-					Runtime.getInstance().logError(TAG, "downloadTask death .");
-					continue;
-				}
-				enqueue(downloadTask);
-			}
-		}
-		cleanTasksCache();
-	}
+    public synchronized void resumeAll() {
+        ConcurrentHashMap<String, DownloadTask> tasks = this.mTasks;
+        if (tasks.size() <= 0) {
+            return;
+        }
+        Set<Map.Entry<String, DownloadTask>> sets = tasks.entrySet();
+        if (sets.size() > 0) {
+            for (Map.Entry<String, DownloadTask> entry : sets) {
+                DownloadTask downloadTask = entry.getValue();
+                if (null == downloadTask || null == downloadTask.getContext() || TextUtils.isEmpty(downloadTask.getUrl())) {
+                    Runtime.getInstance().logError(TAG, "downloadTask death .");
+                    continue;
+                }
+                Runtime.getInstance().logError(TAG, "downloadTask:" + downloadTask.getUrl());
+                enqueue(downloadTask);
+            }
+        }
+        cleanTasksCache();
 
-	public boolean resume(@NonNull String url) {
-		DownloadTask downloadTask = mTasks.remove(url);
-		if (null == downloadTask || null == downloadTask.getContext() || TextUtils.isEmpty(downloadTask.getUrl())) {
-			Runtime.getInstance().logError(TAG, "downloadTask death .");
-			return false;
-		}
-		enqueue(downloadTask);
-		return true;
-	}
+    }
 
-	private void cleanTasksCache() {
-		ConcurrentHashMap<String, DownloadTask> tasks = this.mTasks;
-		tasks.clear();
-	}
+    public synchronized boolean resume(@NonNull String url) {
+        DownloadTask downloadTask = mTasks.remove(url);
+        if (null == downloadTask || null == downloadTask.getContext() || TextUtils.isEmpty(downloadTask.getUrl())) {
+            Runtime.getInstance().logError(TAG, "downloadTask death .");
+            return false;
+        }
+        enqueue(downloadTask);
+        return true;
 
-	private void remove(@NonNull String url) {
-		ConcurrentHashMap<String, DownloadTask> tasks = this.mTasks;
-		tasks.remove(url);
-	}
+    }
 
-	public boolean exist(@NonNull String url) {
-		return ExecuteTasksMap.getInstance().exist(url) || mTasks.contains(url);
-	}
+    private synchronized void cleanTasksCache() {
+        ConcurrentHashMap<String, DownloadTask> tasks = this.mTasks;
+        tasks.clear();
+    }
 
-	public boolean isPaused(@NonNull String url) {
-		DownloadTask downloadTask = mTasks.get(url);
-		return downloadTask != null && downloadTask.getStatus() == DownloadTask.STATUS_PAUSED;
-	}
+    private synchronized void remove(@NonNull String url) {
+        ConcurrentHashMap<String, DownloadTask> tasks = this.mTasks;
+        tasks.remove(url);
+    }
 
-	public int pausedTasksTotals() {
-		return mTasks.size();
-	}
+    public boolean exist(@NonNull String url) {
+        return ExecuteTasksMap.getInstance().exist(url) || mTasks.contains(url);
+    }
 
-	public boolean isRunning(@NonNull String url) {
-		return ExecuteTasksMap.getInstance().exist(url);
-	}
+    public boolean isPaused(@NonNull String url) {
+        DownloadTask downloadTask = mTasks.get(url);
+        return downloadTask != null && downloadTask.getStatus() == DownloadTask.STATUS_PAUSED;
+    }
+
+    public int pausedTasksTotals() {
+        return mTasks.size();
+    }
+
+    public boolean isRunning(@NonNull String url) {
+        return ExecuteTasksMap.getInstance().exist(url);
+    }
 }
