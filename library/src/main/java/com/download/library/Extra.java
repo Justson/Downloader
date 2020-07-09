@@ -19,6 +19,7 @@ package com.download.library;
 import android.support.annotation.DrawableRes;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -74,7 +75,7 @@ public class Extra implements Serializable, Cloneable {
     /**
      * Header
      */
-    protected Map<String, String> mHeaders;
+    protected HashMap<String, String> mHeaders;
     /**
      * 下载文件完成，是否自动打开该文件
      */
@@ -201,5 +202,32 @@ public class Extra implements Serializable, Cloneable {
             e.printStackTrace();
         }
         return new Extra();
+    }
+
+    protected Extra copy(Extra copy) {
+        copy.mIsForceDownload = this.mIsForceDownload;
+        copy.mEnableIndicator = this.mEnableIndicator;
+        copy.mDownloadIcon = this.mDownloadIcon;
+        copy.mDownloadDoneIcon = this.mDownloadDoneIcon;
+        copy.mIsParallelDownload = this.mIsParallelDownload;
+        copy.mIsBreakPointDownload = this.mIsBreakPointDownload;
+        copy.mUrl = this.mUrl;
+        copy.mContentDisposition = this.mContentDisposition;
+        copy.mContentLength = this.mContentLength;
+        copy.mMimetype = this.mMimetype;
+        copy.mUserAgent = this.mUserAgent;
+        try {
+            copy.mHeaders = (HashMap<String, String>) this.mHeaders.clone();
+        } catch (Throwable ignored) {
+            ignored.printStackTrace();
+        }
+        copy.mAutoOpen = this.mAutoOpen;
+        copy.downloadTimeOut = this.downloadTimeOut;
+        copy.connectTimeOut = this.connectTimeOut;
+        copy.blockMaxTime = this.blockMaxTime;
+        copy.quickProgress = this.quickProgress;
+        copy.targetCompareMD5 = this.targetCompareMD5;
+        copy.fileMD5 = this.fileMD5;
+        return copy;
     }
 }

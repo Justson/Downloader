@@ -2,7 +2,6 @@ package com.download.library;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Looper;
 import android.os.Process;
 import android.support.annotation.NonNull;
@@ -16,17 +15,12 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import static com.download.library.DownloadTask.STATUS_PAUSED;
 import static com.download.library.Downloader.DOWNLOAD_MESSAGE;
 import static com.download.library.Downloader.ERROR_LOAD;
 import static com.download.library.Downloader.ERROR_USER_CANCEL;
 import static com.download.library.Downloader.ERROR_USER_PAUSE;
-import static com.download.library.Downloader.SERIAL_EXECUTOR;
 import static com.download.library.Downloader.SUCCESSFUL;
 
 /**
@@ -43,22 +37,8 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
     private final Object mLock = new Object();
 
     private DownloadSubmitterImpl() {
-        ThreadPoolExecutor service = new ThreadPoolExecutor(1, 1, 30L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
-            @Override
-            public Thread newThread(@NonNull Runnable r) {
-                return new Thread(r);
-            }
-        });
-        service.allowCoreThreadTimeOut(true);
-        this.mExecutor = service;
-        service = new ThreadPoolExecutor(1, 1, 30L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
-            @Override
-            public Thread newThread(@NonNull Runnable r) {
-                return new Thread(r);
-            }
-        });
-        service.allowCoreThreadTimeOut(true);
-        this.mExecutor0 = service;
+        this.mExecutor = Executors.taskEnqueueDispatchExecutor();
+        this.mExecutor0 = Executors.taskQueuedUpDispatchExecutor();
     }
 
     static DownloadSubmitterImpl getInstance() {
@@ -91,11 +71,8 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
         if (!submit) {
             return null;
         }
-        synchronized (downloadTask) {
-            while (!downloadTask.isCompleted()) {
-                downloadTask.wait(2000L);
-            }
-        }
+        downloadTask.setup();
+        downloadTask.await();
         if (null != downloadTask.getThrowable()) {
             throw (Exception) downloadTask.getThrowable();
         }
@@ -142,9 +119,7 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
                 }
             }
         }
-        synchronized (downloadTask) {
-            downloadTask.notifyAll();
-        }
+        downloadTask.anotify();
     }
 
 
@@ -200,9 +175,9 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
                 mDownloadTask.createNotifier();
 
                 if (this.mDownloadTask.isParallelDownload()) {
-                    executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                    executeOnExecutor(Executors.io());
                 } else {
-                    executeOnExecutor(SERIAL_EXECUTOR);
+                    executeOnExecutor(Executors.getSerialExecutor());
                 }
             } catch (Throwable throwable) {
                 releaseTask(mDownloadTask);

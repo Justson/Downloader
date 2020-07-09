@@ -29,6 +29,11 @@ import com.download.library.queue.GlobalQueue;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author cenxiaozhong
@@ -63,11 +68,17 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
     String redirect = "";
     DownloadStatusListener mDownloadStatusListener;
     Throwable mThrowable;
-
-    /**
-     * 通知
-     */
+    Lock mutex = null;
+    Condition mCondition = null;
     protected DownloadNotifier mDownloadNotifier;
+
+
+    protected synchronized void setup() {
+        if (mutex == null) {
+            mutex = new ReentrantLock();
+            mCondition = mutex.newCondition();
+        }
+    }
 
     void resetConnectTimes() {
         connectTimes = 0;
@@ -183,7 +194,7 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
     }
 
     protected DownloadTask setFile(@NonNull File file, @NonNull String authority) {
-        if (!file.exists()) {
+        if (!file.exists() && file.isFile()) {
             try {
                 file.createNewFile();
             } catch (IOException e) {
@@ -368,7 +379,7 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
 
     protected DownloadTask addHeader(String key, String value) {
         if (this.mHeaders == null) {
-            this.mHeaders = new android.support.v4.util.ArrayMap<>();
+            this.mHeaders = new HashMap<>();
         }
         this.mHeaders.put(key, value);
         return this;
@@ -509,8 +520,8 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
     @Override
     public DownloadTask clone() {
         try {
-            DownloadTask downloadTask = (DownloadTask) super.clone();
-            downloadTask.mId = Runtime.getInstance().generateGlobalId();
+            DownloadTask downloadTask = new DownloadTask();
+            this.copy(downloadTask);
             return downloadTask;
         } catch (Throwable throwable) {
             throwable.printStackTrace();
@@ -546,5 +557,31 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
 
     void setThrowable(Throwable throwable) {
         mThrowable = throwable;
+    }
+
+    void await() throws InterruptedException {
+        if (mutex == null) {
+            return;
+        }
+        mutex.lock();
+        try {
+            while (!isCompleted()) {
+                mCondition.await(2000L, TimeUnit.MILLISECONDS);
+            }
+        } finally {
+            mutex.unlock();
+        }
+    }
+
+    void anotify() {
+        if (mutex == null) {
+            return;
+        }
+        mutex.lock();
+        try {
+            mCondition.signalAll();
+        } finally {
+            mutex.unlock();
+        }
     }
 }

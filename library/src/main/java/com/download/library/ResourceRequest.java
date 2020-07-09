@@ -22,6 +22,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import java.io.File;
+import java.util.HashMap;
 
 /**
  * @author cenxiaozhong
@@ -52,6 +53,7 @@ public class ResourceRequest<T extends DownloadTask> {
         mDownloadTask.setUniquePath(uniquePath);
         return this;
     }
+
     public ResourceRequest setBlockMaxTime(long blockMaxTime) {
         mDownloadTask.blockMaxTime = blockMaxTime;
         return this;
@@ -121,7 +123,7 @@ public class ResourceRequest<T extends DownloadTask> {
 
     public ResourceRequest addHeader(String key, String value) {
         if (mDownloadTask.mHeaders == null) {
-            mDownloadTask.mHeaders = new android.support.v4.util.ArrayMap<>();
+            mDownloadTask.mHeaders = new HashMap<>();
         }
         mDownloadTask.mHeaders.put(key, value);
         return this;
