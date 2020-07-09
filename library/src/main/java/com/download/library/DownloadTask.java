@@ -74,7 +74,7 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
     }
 
 
-    @IntDef({STATUS_NEW, STATUS_PENDDING, STATUS_DOWNLOADING, STATUS_PAUSED, STATUS_PAUSING, STATUS_SUCCESSFUL, STATUS_CANCELED, STATUS_ERROR})
+    @IntDef({STATUS_NEW, STATUS_PENDDING, STATUS_DOWNLOADING, STATUS_PAUSING, STATUS_PAUSED, STATUS_SUCCESSFUL, STATUS_CANCELED, STATUS_ERROR})
     @interface DownloadTaskStatus {
     }
 
@@ -323,8 +323,7 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
         return this;
     }
 
-    protected DownloadTask
-    setDownloadListenerAdapter(DownloadListenerAdapter downloadListenerAdapter) {
+    protected DownloadTask setDownloadListenerAdapter(DownloadListenerAdapter downloadListenerAdapter) {
         setDownloadListener(downloadListenerAdapter);
         setDownloadingListener(downloadListenerAdapter);
         setDownloadStatusListener(downloadListenerAdapter);
@@ -520,7 +519,8 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
     }
 
     boolean isCompleted() {
-        return getStatus() == STATUS_CANCELED || getStatus() == STATUS_PAUSED || getStatus() == STATUS_SUCCESSFUL || getStatus() == STATUS_ERROR;
+        int status = getStatus();
+        return status == STATUS_CANCELED || status == STATUS_PAUSED || status == STATUS_SUCCESSFUL || status == STATUS_ERROR;
     }
 
     public boolean isUniquePath() {
