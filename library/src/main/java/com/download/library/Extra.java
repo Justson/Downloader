@@ -27,7 +27,7 @@ import java.util.Map;
  * @date 2019/2/8
  * @since 1.0.0
  */
-public class Extra implements Serializable, Cloneable {
+public abstract class Extra implements Serializable, Cloneable {
 
     /**
      * 强制下载
@@ -194,15 +194,6 @@ public class Extra implements Serializable, Cloneable {
         return retry;
     }
 
-    @Override
-    protected Object clone() {
-        try {
-            return super.clone();
-        } catch (CloneNotSupportedException e) {
-            e.printStackTrace();
-        }
-        return new Extra();
-    }
 
     protected Extra copy(Extra copy) {
         copy.mIsForceDownload = this.mIsForceDownload;
