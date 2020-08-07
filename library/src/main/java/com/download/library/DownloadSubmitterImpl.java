@@ -8,7 +8,8 @@ import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.download.library.queue.Dispatch;
+import com.queue.library.DispatchThread;
+import com.queue.library.GlobalQueue;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,7 +34,7 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
     private static final String TAG = DownloadSubmitterImpl.class.getSimpleName();
     private final Executor mExecutor;
     private final Executor mExecutor0;
-    private volatile Dispatch mMainQueue = null;
+    private volatile DispatchThread mMainQueue = null;
     private final Object mLock = new Object();
 
     private DownloadSubmitterImpl() {
@@ -100,13 +101,9 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
     }
 
 
-    Dispatch getMainQueue() {
+    DispatchThread getMainQueue() {
         if (mMainQueue == null) {
-            synchronized (DownloadSubmitterImpl.this) {
-                if (mMainQueue == null) {
-                    mMainQueue = new Dispatch(Looper.getMainLooper());
-                }
-            }
+            mMainQueue = GlobalQueue.getMainQueue();
         }
         return mMainQueue;
     }

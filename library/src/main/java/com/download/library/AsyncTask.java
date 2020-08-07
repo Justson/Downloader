@@ -2,7 +2,7 @@ package com.download.library;
 
 import android.os.Looper;
 
-import com.download.library.queue.Dispatch;
+import com.queue.library.DispatchThread;
 
 /**
  * @author cenxiaozhong
@@ -12,10 +12,10 @@ import com.download.library.queue.Dispatch;
 public class AsyncTask {
 
 
-    private static final Dispatch MAIN_QUEUE = new Dispatch(Looper.getMainLooper());
+    private static final DispatchThread MAIN_QUEUE = new DispatchThread(Looper.getMainLooper());
 
     protected void publishProgress(final Integer... values) {
-        MAIN_QUEUE.postRunnableQuick(new Runnable() {
+        MAIN_QUEUE.post(new Runnable() {
             @Override
             public void run() {
                 onProgressUpdate(values);

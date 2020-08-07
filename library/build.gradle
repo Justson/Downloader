@@ -41,6 +41,7 @@ dependencies {
     androidTestImplementation 'junit:junit:4.12'
     compileOnly "com.android.support:design:${SUPPORT_LIB_VERSION}"
     compileOnly "com.android.support:support-v4:${SUPPORT_LIB_VERSION}"
+    implementation 'com.github.Justson:dispatch-queue:v1.0.5'
 }
 //task javadoc(type: Javadoc) {
 //    options.encoding = "utf-8"
