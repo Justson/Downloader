@@ -30,7 +30,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -71,6 +70,7 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
     Throwable mThrowable;
     Lock mutex = null;
     Condition mCondition = null;
+    volatile boolean isAWait = false;
     protected DownloadNotifier mDownloadNotifier;
 
 
@@ -567,10 +567,12 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
         mutex.lock();
         try {
             while (!isCompleted()) {
-                mCondition.await(2000L, TimeUnit.MILLISECONDS);
+                isAWait = true;
+                mCondition.await();
             }
         } finally {
             mutex.unlock();
+            isAWait = false;
         }
     }
 

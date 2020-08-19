@@ -107,8 +107,11 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }).get();
                 Log.i(TAG, " download success file length:" + byte2FitMemorySize(((File) file).length()) + " name:" + file.getName());
+
             }
         }).start();
+
+
         /*DownloadImpl.getInstance()
                 .with(getApplicationContext())
                 .setEnableIndicator(true)//启动通知
