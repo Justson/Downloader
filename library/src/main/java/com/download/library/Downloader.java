@@ -36,7 +36,6 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
-import java.util.concurrent.Executor;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
@@ -227,8 +226,19 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
         this.mBeginTime = SystemClock.elapsedRealtime();
         if (!checkNet()) {
             Runtime.getInstance().logError(TAG, " Network error,isForceDownload:" + mDownloadTask.isForceDownload());
+            downloadTask.error();
             return ERROR_NETWORK_CONNECTION;
         }
+        mDownloadMessage.append("\r\n").append("=============").append("\n");
+        mDownloadMessage.append("Downloader").append("\n");
+        mDownloadMessage.append("downloadTask id=").append(downloadTask.getId()).append("\n");
+        mDownloadMessage.append("url=").append(downloadTask.getUrl()).append("\n");
+        try {
+            mDownloadMessage.append("file=").append(downloadTask.getFile() == null ? "" : downloadTask.getFile().getCanonicalPath()).append("\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         String name = Thread.currentThread().getName();
         Thread.currentThread().setName("pool-download-thread-" + Runtime.getInstance().generateGlobalThreadId());
         try {
@@ -251,19 +261,18 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
                         downloadTask.error();
                         mDownloadTask.setThrowable(ioException);
                     }
-                    mDownloadMessage.append("\n").append("download error message: ").append(ioException.getMessage());
+                    mDownloadMessage.append("download error message: ").append(ioException.getMessage()).append("\n");
                 }
                 if (i + 1 <= downloadTask.retry) {
-                    mDownloadMessage.append("\n").append("download error , retry ").append(i + 1);
-                    Runtime.getInstance().logError(TAG, "download error , retry " + (i + 1));
+                    mDownloadMessage.append("download error , retry ").append(i + 1).append("\n");
                 }
             }
 
-            mDownloadMessage.append("\n").append("mLoaded=").append(mLoaded);
-            mDownloadMessage.append("\n").append("mLastLoaded=").append(mLastLoaded);
-            mDownloadMessage.append("\n").append("mLoaded+mLastLoaded=").append(mLoaded + mLastLoaded);
-            mDownloadMessage.append("\n").append("totals=").append(this.mTotals);
-            Runtime.getInstance().log(TAG, "\n\n\n" + mDownloadMessage.toString());
+            mDownloadMessage.append("mLoaded=").append(mLoaded).append("\n");
+            mDownloadMessage.append("mLastLoaded=").append(mLastLoaded).append("\n");
+            mDownloadMessage.append("mLoaded+mLastLoaded=").append(mLoaded + mLastLoaded).append("\n");
+            mDownloadMessage.append("totals=").append(this.mTotals).append("\n");
+            Runtime.getInstance().log(TAG, "\r\n" + mDownloadMessage.toString());
         } finally {
             Thread.currentThread().setName(name);
         }
@@ -284,7 +293,7 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
         HttpURLConnection httpURLConnection = null;
         try {
             for (; redirectionCount++ <= MAX_REDIRECTS; ) {
-                mDownloadMessage.append("\n").append("redirectionCount=").append(redirectionCount);
+                mDownloadMessage.append("redirectionCount=").append(redirectionCount).append("\n");
                 if (null != httpURLConnection) {
                     httpURLConnection.disconnect();
                 }
@@ -332,7 +341,7 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
                 final boolean finishKnown = (isEncodingChunked && hasLength || !isEncodingChunked && !hasLength);
                 int responseCode = httpURLConnection.getResponseCode();
                 Runtime.getInstance().log(TAG, "responseCode:" + responseCode);
-                mDownloadMessage.append("\n").append("responseCode=").append(responseCode);
+                mDownloadMessage.append("responseCode=").append(responseCode).append("\n");
                 if (responseCode == HTTP_PARTIAL && !hasLength) {
                     downloadTask.successful();
                     return SUCCESSFUL;
@@ -343,7 +352,6 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
                             Runtime.getInstance().logError(TAG, " error , giving up ,"
                                     + "  EncodingChunked:" + isEncodingChunked
                                     + "  hasLength:" + hasLength + " response length:" + contentLength + " responseCode:" + responseCode);
-                            downloadTask.error();
                             downloadTask.error();
                             return ERROR_LOAD;
                         }
@@ -403,7 +411,7 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
                         }
                         saveEtag(httpURLConnection);
                         downloadTask.setTotalsLength(this.mTotals);
-                        mDownloadMessage.append("\n").append("totals=").append(this.mTotals);
+                        mDownloadMessage.append("totals=").append(this.mTotals).append("\n");
                         return transferData(getInputStream(httpURLConnection),
                                 new LoadingRandomAccessFile(downloadTask.getFile()),
                                 false);
@@ -428,15 +436,15 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
                             downloadTask.error();
                             return ERROR_STORAGE;
                         }
-                        Runtime.getInstance().log(TAG, " last:" + mLastLoaded + " totals:" + this.mTotals);
-                        mDownloadMessage.append("\n").append(" last=").append(mLastLoaded).append(" totals=").append(this.mTotals);
+                        Runtime.getInstance().log(TAG, "last:" + mLastLoaded + " totals:" + this.mTotals);
+                        mDownloadMessage.append("last=").append(mLastLoaded).append(" totals=").append(this.mTotals).append("\n");
                         return transferData(getInputStream(httpURLConnection),
                                 new LoadingRandomAccessFile(downloadTask.getFile()),
                                 true);
                     case HTTP_RANGE_NOT_SATISFIABLE:
                         if (null != downloadTask.getFile()) {
-                            Runtime.getInstance().log(TAG, " range not satisfiable .");
-                            mDownloadMessage.append("\n").append(" range not satisfiable .");
+                            Runtime.getInstance().log(TAG, "range not satisfiable .");
+                            mDownloadMessage.append("range not satisfiable .").append("\n");
                             downloadTask.getFile().delete();
                             downloadTask.getFile().createNewFile();
                         }
@@ -450,8 +458,7 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
                             downloadTask.error();
                             return ERROR_SERVICE;
                         } else {
-                            Runtime.getInstance().log(TAG, "redirect:" + location + "  origin:" + downloadTask.getUrl());
-                            mDownloadMessage.append("\n").append(" redirect:" + location);
+                            mDownloadMessage.append("redirect:" + location).append("\n");
                         }
                         try {
                             url = new URL(url, location);
@@ -488,7 +495,7 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
         if (null != downloadTask.getFile() && downloadTask.getFile().length() > 0) {
             httpURLConnection.setRequestProperty("Range", "bytes=" + (mLastLoaded = downloadTask.getFile().length()) + "-");
         }
-        mDownloadMessage.append("\n").append("range=").append(mLastLoaded);
+        mDownloadMessage.append("range=").append(mLastLoaded).append("\n");
         httpURLConnection.setRequestProperty("Connection", "close");
     }
 
@@ -508,8 +515,7 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
                     if (success) {
                         downloadTask.setFileSafe(renameTarget);
                         updateNotifierTitle();
-                        Runtime.getInstance().logError(TAG, "origin:" + originFile.getName() + " rename:" + renameTarget.getName());
-                        mDownloadMessage.append("\n").append("origin:").append(originFile.getName()).append(" rename:").append(renameTarget.getName());
+                        mDownloadMessage.append("origin=").append(originFile.getName()).append(" rename=").append(renameTarget.getName()).append("\n");
                         originFile.delete();
                     } else {
                     }

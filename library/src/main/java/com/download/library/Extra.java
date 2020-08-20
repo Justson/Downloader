@@ -207,10 +207,14 @@ public abstract class Extra implements Serializable, Cloneable {
         copy.mContentLength = this.mContentLength;
         copy.mMimetype = this.mMimetype;
         copy.mUserAgent = this.mUserAgent;
-        try {
-            copy.mHeaders = (HashMap<String, String>) this.mHeaders.clone();
-        } catch (Throwable ignored) {
-            ignored.printStackTrace();
+        if (null != mHeaders) {
+            try {
+                copy.mHeaders = (HashMap<String, String>) this.mHeaders.clone();
+            } catch (Throwable ignored) {
+                ignored.printStackTrace();
+            }
+        } else {
+            copy.mHeaders = null;
         }
         copy.mAutoOpen = this.mAutoOpen;
         copy.downloadTimeOut = this.downloadTimeOut;

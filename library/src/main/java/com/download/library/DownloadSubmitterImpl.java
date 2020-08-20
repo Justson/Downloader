@@ -31,7 +31,7 @@ import static com.download.library.Downloader.SUCCESSFUL;
  */
 public class DownloadSubmitterImpl implements DownloadSubmitter {
 
-    private static final String TAG = DownloadSubmitterImpl.class.getSimpleName();
+    private static final String TAG = Runtime.PREFIX + DownloadSubmitterImpl.class.getSimpleName();
     private final Executor mExecutor;
     private final Executor mExecutor0;
     private volatile DispatchThread mMainQueue = null;
@@ -77,7 +77,12 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
         if (null != downloadTask.getThrowable()) {
             throw (Exception) downloadTask.getThrowable();
         }
-        return downloadTask.isSuccessful() ? downloadTask.getFile() : null;
+        try {
+            File file = downloadTask.isSuccessful() ? downloadTask.getFile() : null;
+            return file;
+        } finally {
+            downloadTask.destroy();
+        }
     }
 
     void execute(@NonNull final Runnable command) {
@@ -116,7 +121,6 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
                 }
             }
         }
-        downloadTask.anotify();
     }
 
 
@@ -193,6 +197,7 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
                         DownloadSubmitterImpl.getInstance().execute0(new DownloadTaskOver(result, mDownloader, mDownloadTask));
                     } catch (Throwable throwable) {
                         throwable.printStackTrace();
+                        mDownloadTask.error();
                         releaseTask(mDownloadTask);
                     }
                 }
@@ -262,6 +267,7 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
             } finally {
                 releaseTask(downloadTask);
                 destroyTask();
+                downloadTask.anotify();
             }
         }
 
@@ -270,8 +276,11 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
             if (!downloadTask.isSuccessful()) {
                 return;
             }
-            Runtime.getInstance().log(TAG, "destroyTask:" + downloadTask.getUrl());
-            downloadTask.destroy();
+            if (!downloadTask.isAWait) {
+                Runtime.getInstance().log(TAG, "destroyTask:" + downloadTask.getUrl());
+                downloadTask.destroy();
+            }
+
         }
 
         private void autoOpen() {
