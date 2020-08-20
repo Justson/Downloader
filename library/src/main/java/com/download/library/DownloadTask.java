@@ -163,8 +163,14 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
     }
 
     protected DownloadTask setFile(@NonNull File file) {
-        if (!file.exists()) {
+        if (!file.exists() && file.isFile()) {
             try {
+                String parentPath = file.getParent();
+                File parent = new File(parentPath);
+                if (!parent.exists()) {
+                    parent.mkdirs();
+                }
+
                 file.createNewFile();
             } catch (IOException e) {
                 e.printStackTrace();

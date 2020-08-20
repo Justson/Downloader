@@ -116,9 +116,9 @@ public class DownloadNotifier {
 				mContext.getString(R.string.download_file_download) :
 				downloadTask.getFile().getName();
 
-		if (title.length() > 20) {
-			title = "..." + title.substring(title.length() - 20, title.length());
-		}
+//		if (title.length() > 20) {
+//			title = "..." + title.substring(title.length() - 20, title.length());
+//		}
 		return title;
 	}
 

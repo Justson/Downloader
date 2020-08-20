@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
  */
 public final class Executors {
 
-    private volatile static Executor IO = AsyncTask.THREAD_POOL_EXECUTOR;
+    private volatile static Executor IO;
     private volatile static Executor TASK_ENQUEUE_DISPATCH;
     private volatile static Executor TASK_QUEUEDUP_DISPATCH;
     private static final String TAG = Executors.class.getSimpleName();
@@ -29,7 +29,7 @@ public final class Executors {
         }
         synchronized (Executors.class) {
             if (IO == null) {
-                ThreadPoolExecutor service = new ThreadPoolExecutor(3, 3, 30L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
+                ThreadPoolExecutor service = new ThreadPoolExecutor(4, 4, 30L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
                     @Override
                     public Thread newThread(@NonNull Runnable r) {
                         return new Thread(r);
@@ -137,8 +137,10 @@ public final class Executors {
                 IO = executor;
             } finally {
                 if (null != io) {
-                    if (io instanceof ExecutorService) {
-                        ((ExecutorService) io).shutdown();
+                    if (io != AsyncTask.THREAD_POOL_EXECUTOR) {
+                        if (io instanceof ExecutorService) {
+                            ((ExecutorService) io).shutdown();
+                        }
                     }
                 }
             }
