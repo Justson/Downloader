@@ -56,7 +56,7 @@ public final class Runtime {
     private static final Pattern CONTENT_DISPOSITION_WITHOUT_ASTERISK_PATTERN =
             Pattern.compile("attachment;\\s*filename\\s*=\\s*\"*([^\"\\n]*)\"*");
     static final String PREFIX = "Download-";
-    boolean DEBUG = true;
+    boolean DEBUG = BuildConfig.DEBUG;
     private String authority;
     private StorageEngine mStorageEngine;
     private StorageEngine.StorageEngineFactory mStorageEngineFactory;
@@ -196,7 +196,7 @@ public final class Runtime {
         return null;
     }
 
-    public boolean checkWifi(Context context) {
+    boolean checkWifi(Context context) {
         ConnectivityManager connectivity = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         if (connectivity == null) {
             return false;
@@ -205,7 +205,7 @@ public final class Runtime {
         return info != null && info.isConnected() && info.getType() == ConnectivityManager.TYPE_WIFI;
     }
 
-    public boolean checkNetwork(Context context) {
+    boolean checkNetwork(Context context) {
         ConnectivityManager connectivity = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         if (connectivity == null) {
             return false;
@@ -251,7 +251,7 @@ public final class Runtime {
         return "";
     }
 
-    public File getDir(Context context, boolean isPublic) {
+    File getDir(Context context, boolean isPublic) {
         File file = (mDownloadDir == null || !mDownloadDir.isDirectory()) ? context.getCacheDir() : mDownloadDir;
         file = new File(file, "download" + File.separator + (isPublic ? "public" : "private"));
         if (!file.exists()) {
