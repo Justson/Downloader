@@ -272,6 +272,9 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            if (downloadTask.getHeaders() != null && !downloadTask.getHeaders().isEmpty()) {
+                mDownloadMessage.append("custom request headers=").append(downloadTask.getHeaders().toString()).append("\n");
+            }
             mDownloadMessage.append("error=").append("0x" + Integer.toHexString(error)).append("\n");
             mDownloadMessage.append("error table: ERROR_NETWORK_CONNECTION = 0x4000,ERROR_RESPONSE_STATUS = 0x4001,ERROR_STORAGE = 0x4002,ERROR_TIME_OUT = 0x4003,ERROR_USER_PAUSE = 0x4004,ERROR_USER_CANCEL = 0x4006,ERROR_SHUTDOWN = 0x4007,ERROR_TOO_MANY_REDIRECTS = 0x4008,ERROR_LOAD = 0x4009,ERROR_RESOURCE_NOT_FOUND = 0x4010,ERROR_MD5 = 0x4011,ERROR_SERVICE = 0x5003,SUCCESSFUL = 0x2000,HTTP_RANGE_NOT_SATISFIABLE = 4016").append("\n");
             mDownloadMessage.append("error message=").append(DOWNLOAD_MESSAGE.get(error)).append("\n");
@@ -292,6 +295,7 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
             }
             mDownloadMessage.append("current downloadTask status=").append(downloadTask.getStatus()).append("\n");
             mDownloadMessage.append("status table: STATUS_NEW = 1000,STATUS_PENDDING = 1001,STATUS_DOWNLOADING = 1002,STATUS_PAUSING = 1003,STATUS_PAUSED = 1004,STATUS_SUCCESSFUL = 1005,STATUS_CANCELED = 1006,STATUS_ERROR = 1007").append("\n");
+            mDownloadMessage.append("used time=").append(downloadTask.getUsedTime()).append("ms").append("\n");
             mDownloadMessage.append("\r\n");
             Runtime.getInstance().log(TAG, "\r\n" + mDownloadMessage.toString());
         } finally {
@@ -487,7 +491,7 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
                             downloadTask.error();
                             return ERROR_SERVICE;
                         } else {
-                            mDownloadMessage.append("redirect:" + location).append("\n");
+                            mDownloadMessage.append("original url=").append(httpURLConnection.getURL().toString()).append("  ,redirect url=" + location).append("\n");
                         }
                         try {
                             url = new URL(url, location);
@@ -495,7 +499,6 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
                             downloadTask.error();
                             return ERROR_SERVICE;
                         }
-                        Runtime.getInstance().log(TAG, "setRedirect:" + url.toString());
                         downloadTask.setRedirect(url.toString());
                         continue;
                     case HTTP_NOT_FOUND:

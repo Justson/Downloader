@@ -470,6 +470,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
+        public DownloadTask addHeader(String key, String value) {
+            return super.addHeader(key, value);
+        }
+
+        @Override
         protected DownloadBean setDownloadListenerAdapter(DownloadListenerAdapter downloadListenerAdapter) {
             return (DownloadBean) super.setDownloadListenerAdapter(downloadListenerAdapter);
         }
@@ -590,6 +595,8 @@ public class MainActivity extends AppCompatActivity {
         downloadBean.setEnableIndicator(false);
         downloadBean.setQuickProgress(true);
         downloadBean.setCalculateMD5(true);
+        downloadBean.addHeader("cookies", "abc");
+        downloadBean.addHeader("tests", "tests");
         downloadBean.setForceDownload(true);
         downloadBean.setTargetCompareMD5("93d1695d87df5a0c0002058afc0361f1");
         mDownloadTasks.add(downloadBean);
