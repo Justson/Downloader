@@ -82,3 +82,9 @@ DownloadImpl.getInstance()
 		});
 ```
 
+### 默认的文件目录
+```
+/data/data/com.download.sample(packagename)/cache/download/private/filename.jpg
+/data/data/com.download.sample(packagename)/cache/download/public/filename.jpg
+```
+

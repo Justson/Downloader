@@ -165,6 +165,11 @@ public class ResourceRequest<T extends DownloadTask> {
         return this;
     }
 
+    public ResourceRequest setCalculateMD5(boolean calculateMD5) {
+        mDownloadTask.setCalculateMD5(calculateMD5);
+        return this;
+    }
+
     public ResourceRequest quickProgress() {
         mDownloadTask.setQuickProgress(true);
         return this;

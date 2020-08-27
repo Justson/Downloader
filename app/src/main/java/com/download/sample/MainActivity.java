@@ -82,33 +82,33 @@ public class MainActivity extends AppCompatActivity {
                 List<DownloadTask> downloadTasks = DownloadImpl.getInstance(getApplicationContext()).cancelAll();
             }
         });
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                /**
-                 *  文件同步下载
-                 */
-                File file = DownloadImpl.getInstance(getApplicationContext())
-                        .with("http://www.httpwatch.com/httpgallery/chunked/chunkedimage.aspx?0.04400023248109086")
-                        .target(new File(getCacheDir(), "t01a16bcd9acd07d029.png"))
-                        .setDownloadListenerAdapter(new DownloadListenerAdapter() {
-                            @Override
-                            public void onProgress(String url, long downloaded, long length, long usedTime) {
-                                super.onProgress(url, downloaded, length, usedTime);
-                                Log.i(TAG, " downloaded:" + downloaded);
-                            }
-
-                            @Override
-                            public boolean onResult(Throwable throwable, Uri path, String url, Extra extra) {
-                                Log.i(TAG, "downloaded onResult isSuccess:" + (throwable == null) + " url:" + url + " Thread:" + Thread.currentThread().getName() + " uri:" + path.toString());
-
-                                return super.onResult(throwable, path, url, extra);
-                            }
-                        }).get();
-                Log.i(TAG, " download success file length:" + byte2FitMemorySize(((File) file).length()) + " name:" + file.getName());
-
-            }
-        }).start();
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                /**
+//                 *  文件同步下载
+//                 */
+//                File file = DownloadImpl.getInstance(getApplicationContext())
+//                        .with("http://www.httpwatch.com/httpgallery/chunked/chunkedimage.aspx?0.04400023248109086")
+//                        .target(new File(getCacheDir(), "t01a16bcd9acd07d029.png"))
+//                        .setDownloadListenerAdapter(new DownloadListenerAdapter() {
+//                            @Override
+//                            public void onProgress(String url, long downloaded, long length, long usedTime) {
+//                                super.onProgress(url, downloaded, length, usedTime);
+////                                Log.i(TAG, " downloaded:" + downloaded);
+//                            }
+//
+//                            @Override
+//                            public boolean onResult(Throwable throwable, Uri path, String url, Extra extra) {
+//                                Log.i(TAG, "downloaded onResult isSuccess:" + (throwable == null) + " url:" + url + " Thread:" + Thread.currentThread().getName() + " uri:" + path.toString());
+//
+//                                return super.onResult(throwable, path, url, extra);
+//                            }
+//                        }).get();
+//                Log.i(TAG, " download success file length:" + byte2FitMemorySize(((File) file).length()) + " name:" + file.getName());
+//
+//            }
+//        }).start();
 
 
         /*DownloadImpl.getInstance()
@@ -226,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onProgress(String url, long downloaded, long length, long usedTime) {
                         super.onProgress(url, downloaded, length, usedTime);
-                        Log.i(TAG, " progress:" + downloaded + " url:" + url);
+//                        Log.i(TAG, " progress:" + downloaded + " url:" + url);
                     }
 
                     @Override
@@ -350,7 +350,7 @@ public class MainActivity extends AppCompatActivity {
                         return;
                     }
                     int mProgress = (int) ((downloaded) / Float.valueOf(length) * 100);
-                    Log.i(TAG, "onProgress:" + mProgress + " downloaded:" + downloaded + " totals:" + length + " url:" + url + " Thread:" + Thread.currentThread().getName());
+//                    Log.i(TAG, "onProgress:" + mProgress + " downloaded:" + downloaded + " totals:" + length + " url:" + url + " Thread:" + Thread.currentThread().getName());
                     nativeDownloadViewHolder.mProgressBar.setProgress(mProgress);
                     if (length <= 0) {
                         nativeDownloadViewHolder.mCurrentProgress.setText("当前进度,已下载:" + byte2FitMemorySize(downloaded) + " 耗时:" + ((downloadBean.getUsedTime()) / 1000) + "s");
@@ -475,6 +475,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
+        public DownloadTask setTargetCompareMD5(String targetCompareMD5) {
+            return super.setTargetCompareMD5(targetCompareMD5);
+        }
+
+        @Override
         public DownloadBean setUrl(String url) {
             return (DownloadBean) super.setUrl(url);
         }
@@ -487,6 +492,11 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected DownloadTask setForceDownload(boolean force) {
             return super.setForceDownload(force);
+        }
+
+        @Override
+        public void setCalculateMD5(boolean calculateMD5) {
+            super.setCalculateMD5(calculateMD5);
         }
 
         @Override
@@ -579,7 +589,9 @@ public class MainActivity extends AppCompatActivity {
         downloadBean.setContext(this.getApplicationContext());
         downloadBean.setEnableIndicator(false);
         downloadBean.setQuickProgress(true);
+        downloadBean.setCalculateMD5(true);
         downloadBean.setForceDownload(true);
+        downloadBean.setTargetCompareMD5("93d1695d87df5a0c0002058afc0361f1");
         mDownloadTasks.add(downloadBean);
 
         downloadBean = new DownloadBean("应用宝", "https://pp.myapp.com/ma_icon/0/icon_5848_1565090584/96", "http://imtt.dd.qq.com/16891/myapp/channel_78665107_1000047_48e7227d3afeb842447c73c4b7af2509.apk?hsr=5848");
@@ -587,6 +599,7 @@ public class MainActivity extends AppCompatActivity {
         downloadBean.setEnableIndicator(false);
         downloadBean.setQuickProgress(false);
         downloadBean.setForceDownload(true);
+        downloadBean.setCalculateMD5(true);
         mDownloadTasks.add(downloadBean);
 
         downloadBean = new DownloadBean("附近越爱", "https://pp.myapp.com/ma_icon/0/icon_52396134_1563435176/96", "https://wxz.myapp.com/16891/apk/66339C385B32951E838F89AFDBB8AFBF.apk?fsname=com.wangjiang.fjya_5.6.3_98.apk&hsr=4d5s");

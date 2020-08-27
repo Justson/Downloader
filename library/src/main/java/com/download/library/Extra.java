@@ -110,6 +110,12 @@ public abstract class Extra implements Serializable, Cloneable {
      */
     protected int retry = 3;
 
+    /**
+     * 是否计算md5
+     */
+    protected boolean calculateMD5;
+
+
     public Map<String, String> getHeaders() {
         return mHeaders;
     }
@@ -194,6 +200,11 @@ public abstract class Extra implements Serializable, Cloneable {
         return retry;
     }
 
+    public boolean isCalculateMD5() {
+        return calculateMD5;
+    }
+
+
 
     protected Extra copy(Extra copy) {
         copy.mIsForceDownload = this.mIsForceDownload;
@@ -223,6 +234,7 @@ public abstract class Extra implements Serializable, Cloneable {
         copy.quickProgress = this.quickProgress;
         copy.targetCompareMD5 = this.targetCompareMD5;
         copy.fileMD5 = this.fileMD5;
+        copy.calculateMD5 = this.calculateMD5;
         return copy;
     }
 }

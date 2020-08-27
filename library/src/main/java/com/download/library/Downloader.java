@@ -117,20 +117,20 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
      */
     private static final int MAX_REDIRECTS = 7;
     private static final int HTTP_TEMP_REDIRECT = 307;
-    public static final int ERROR_NETWORK_CONNECTION = 0x400;
-    public static final int ERROR_RESPONSE_STATUS = 0x401;
-    public static final int ERROR_STORAGE = 0x402;
-    public static final int ERROR_TIME_OUT = 0x403;
-    public static final int ERROR_USER_PAUSE = 0x404;
-    public static final int ERROR_USER_CANCEL = 0x406;
-    public static final int ERROR_SHUTDOWN = 0x407;
-    public static final int ERROR_TOO_MANY_REDIRECTS = 0x408;
-    public static final int ERROR_LOAD = 0x409;
-    public static final int ERROR_RESOURCE_NOT_FOUND = 0x410;
-    public static final int ERROR_MD5 = 0x411;
-    public static final int ERROR_SERVICE = 0x503;
-    public static final int SUCCESSFUL = 0x200;
-    public static final int HTTP_RANGE_NOT_SATISFIABLE = 416;
+    public static final int ERROR_NETWORK_CONNECTION = 0x4000;
+    public static final int ERROR_RESPONSE_STATUS = 0x4001;
+    public static final int ERROR_STORAGE = 0x4002;
+    public static final int ERROR_TIME_OUT = 0x4003;
+    public static final int ERROR_USER_PAUSE = 0x4004;
+    public static final int ERROR_USER_CANCEL = 0x4006;
+    public static final int ERROR_SHUTDOWN = 0x4007;
+    public static final int ERROR_TOO_MANY_REDIRECTS = 0x4008;
+    public static final int ERROR_LOAD = 0x4009;
+    public static final int ERROR_RESOURCE_NOT_FOUND = 0x4010;
+    public static final int ERROR_MD5 = 0x4011;
+    public static final int ERROR_SERVICE = 0x5003;
+    public static final int SUCCESSFUL = 0x2000;
+    public static final int HTTP_RANGE_NOT_SATISFIABLE = 4016;
     protected static final SparseArray<String> DOWNLOAD_MESSAGE = new SparseArray<>(13);
     private static final Handler HANDLER = new Handler(Looper.getMainLooper());
     protected volatile boolean enableProgress = false;
@@ -211,7 +211,7 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
     }
 
     protected Integer doInBackground() {
-        int result = ERROR_LOAD;
+        int error = ERROR_LOAD;
         DownloadTask downloadTask = mDownloadTask;
         if (downloadTask.isPausing()) {
             downloadTask.pause();
@@ -246,10 +246,10 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
             IOException ioException = null;
             for (int i = 0; i <= downloadTask.retry; i++) {
                 try {
-                    result = doDownload();
+                    error = doDownload();
                 } catch (IOException e) {
                     this.mThrowable = ioException = e;
-                    result = ERROR_LOAD;
+                    error = ERROR_LOAD;
                     if (Runtime.getInstance().isDebug()) {
                         e.printStackTrace();
                     }
@@ -267,16 +267,37 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
                     mDownloadMessage.append("download error , retry ").append(i + 1).append("\n");
                 }
             }
-
+            try {
+                mDownloadMessage.append("final output file=").append(downloadTask.getFile() == null ? "" : downloadTask.getFile().getCanonicalPath()).append("\n");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            mDownloadMessage.append("error=").append("0x" + Integer.toHexString(error)).append("\n");
+            mDownloadMessage.append("error table: ERROR_NETWORK_CONNECTION = 0x4000,ERROR_RESPONSE_STATUS = 0x4001,ERROR_STORAGE = 0x4002,ERROR_TIME_OUT = 0x4003,ERROR_USER_PAUSE = 0x4004,ERROR_USER_CANCEL = 0x4006,ERROR_SHUTDOWN = 0x4007,ERROR_TOO_MANY_REDIRECTS = 0x4008,ERROR_LOAD = 0x4009,ERROR_RESOURCE_NOT_FOUND = 0x4010,ERROR_MD5 = 0x4011,ERROR_SERVICE = 0x5003,SUCCESSFUL = 0x2000,HTTP_RANGE_NOT_SATISFIABLE = 4016").append("\n");
+            mDownloadMessage.append("error message=").append(DOWNLOAD_MESSAGE.get(error)).append("\n");
             mDownloadMessage.append("mLoaded=").append(mLoaded).append("\n");
             mDownloadMessage.append("mLastLoaded=").append(mLastLoaded).append("\n");
             mDownloadMessage.append("mLoaded+mLastLoaded=").append(mLoaded + mLastLoaded).append("\n");
             mDownloadMessage.append("totals=").append(this.mTotals).append("\n");
+            if (downloadTask.getStatus() == DownloadTask.STATUS_SUCCESSFUL || error == ERROR_MD5) {
+                mDownloadMessage.append("isCalculateMD5=").append(downloadTask.isCalculateMD5()).append("\n");
+                if (!TextUtils.isEmpty(downloadTask.fileMD5)) {
+                    mDownloadMessage.append("FileMD5=").append(downloadTask.fileMD5).append("\n");
+                } else {
+                    mDownloadMessage.append("FileMD5=").append("''").append("\n");
+                }
+            }
+            if (!TextUtils.isEmpty(downloadTask.getTargetCompareMD5())) {
+                mDownloadMessage.append("targetCompareMD5=").append(downloadTask.getTargetCompareMD5()).append("\n");
+            }
+            mDownloadMessage.append("current downloadTask status=").append(downloadTask.getStatus()).append("\n");
+            mDownloadMessage.append("status table: STATUS_NEW = 1000,STATUS_PENDDING = 1001,STATUS_DOWNLOADING = 1002,STATUS_PAUSING = 1003,STATUS_PAUSED = 1004,STATUS_SUCCESSFUL = 1005,STATUS_CANCELED = 1006,STATUS_ERROR = 1007").append("\n");
+            mDownloadMessage.append("\r\n");
             Runtime.getInstance().log(TAG, "\r\n" + mDownloadMessage.toString());
         } finally {
             Thread.currentThread().setName(name);
         }
-        return result;
+        return error;
     }
 
     private int doDownload() throws IOException {
@@ -361,9 +382,14 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
                             downloadTask.connectTimes++;
                             if (downloadTask.getFile().length() > 0 && !isEncodingChunked) {
                                 if (downloadTask.getFile().length() == contentLength) {
+                                    mDownloadMessage.append("file already exist, file name=").append(downloadTask.getFile().getName()).append(", file length==contentLength").append(",contentLength=").append(contentLength).append("\n");
+                                    String fileMD5 = Runtime.getInstance().md5(downloadTask.getFile());
                                     int compareResult = Runtime.getInstance().getFileComparator().compare(downloadTask.getUrl(),
-                                            downloadTask.getFile(), downloadTask.getTargetCompareMD5(), Runtime.getInstance().md5(downloadTask.getFile()));
+                                            downloadTask.getFile(), downloadTask.getTargetCompareMD5(), fileMD5);
+                                    mDownloadMessage.append("compareResult=").append(compareResult).append("\n");
+                                    mDownloadMessage.append("compare Result table:").append("COMPARE_RESULT_SUCCESSFUL = 1").append(",COMPARE_RESULT_REDOWNLOAD_COVER = 2").append(",COMPARE_RESULT_REDOWNLOAD_RENAME = 3").append("\n");
                                     if (compareResult == COMPARE_RESULT_SUCCESSFUL) {
+                                        downloadTask.setFileMD5(fileMD5);
                                         mLastLoaded = contentLength;
                                         publishProgressUpdate(1);
                                         downloadTask.successful();
@@ -379,10 +405,13 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
                                                 if (targetFile.length() >= contentLength) {
                                                     Runtime.getInstance().log(TAG, "rename download , targetFile exists:" + targetFile.getName());
                                                 } else {
+                                                    mDownloadMessage.append("origin file name=").append(downloadTask.getFile().getName()).append(" target file name=").append(targetFile.getName()).append(",current target file length=").append(targetFile.length()).append("\n");
                                                     downloadTask.setFileSafe(targetFile);
                                                     break;
                                                 }
                                             } else {
+                                                mDownloadMessage.append("target file is not exist, create new target file ,file name=").append(targetFile.getName()).append("\n");
+
                                                 targetFile.createNewFile();
                                                 downloadTask.setFileSafe(targetFile);
                                                 break;
@@ -390,7 +419,7 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
                                         }
                                     }
                                 } else if (downloadTask.getFile().length() >= contentLength) {
-                                    Runtime.getInstance().log(TAG, " file length error .");
+                                    mDownloadMessage.append("file length error .").append("\n");
                                     downloadTask.getFile().delete();
                                     downloadTask.getFile().createNewFile();
                                 }
@@ -711,9 +740,15 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
             if (downloadTask.isCanceled()) {
                 return ERROR_USER_CANCEL;
             }
-            if (!TextUtils.isEmpty(downloadTask.getTargetCompareMD5())) {
+            if (downloadTask.isCalculateMD5()) {
                 String md5 = Runtime.getInstance().md5(mDownloadTask.mFile);
                 mDownloadTask.setFileMD5(md5);
+            }
+            if (!TextUtils.isEmpty(downloadTask.getTargetCompareMD5())) {
+                if (TextUtils.isEmpty(downloadTask.fileMD5)) {
+                    String md5 = Runtime.getInstance().md5(mDownloadTask.mFile);
+                    mDownloadTask.setFileMD5(md5);
+                }
                 if (!downloadTask.getTargetCompareMD5().equalsIgnoreCase(downloadTask.getFileMD5())) {
                     downloadTask.error();
                     return ERROR_MD5;

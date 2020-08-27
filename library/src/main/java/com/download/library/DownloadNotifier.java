@@ -52,14 +52,24 @@ public class DownloadNotifier {
     private Notification mNotification;
     private NotificationCompat.Builder mBuilder;
     private Context mContext;
-    private String mChannelId = "";
     private volatile boolean mAddedCancelAction = false;
     private static final String TAG = Runtime.PREFIX + DownloadNotifier.class.getSimpleName();
     private NotificationCompat.Action mAction;
     private DownloadTask mDownloadTask;
     private String mContent = "";
     private static long sLastUpdateNoticationTime = SystemClock.elapsedRealtime();
-    private static final DispatchThread NOTIFICATION_UPDATE_QUEUE = DispatchThread.create("Notifier");
+    private static volatile DispatchThread NOTIFICATION_UPDATE_QUEUE;
+
+    private static DispatchThread getNotificationUpdateQueue() {
+        if (null == NOTIFICATION_UPDATE_QUEUE) {
+            synchronized (DownloadNotifier.class) {
+                if (null == NOTIFICATION_UPDATE_QUEUE) {
+                    NOTIFICATION_UPDATE_QUEUE = DispatchThread.create("Notifier");
+                }
+            }
+        }
+        return NOTIFICATION_UPDATE_QUEUE;
+    }
 
     DownloadNotifier(Context context, int id) {
         this.mNotificationId = id;
@@ -69,14 +79,17 @@ public class DownloadNotifier {
                 .getSystemService(NOTIFICATION_SERVICE);
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                String channelId = "";
                 mBuilder = new NotificationCompat.Builder(mContext,
-                        mChannelId = mContext.getPackageName().concat(Runtime.getInstance().getVersion()));
-                NotificationChannel mNotificationChannel = new NotificationChannel(mChannelId,
+                        channelId = mContext.getPackageName().concat(Runtime.getInstance().getVersion()));
+                NotificationChannel mNotificationChannel = new NotificationChannel(channelId,
                         Runtime.getInstance().getApplicationName(context),
                         NotificationManager.IMPORTANCE_LOW);
                 NotificationManager mNotificationManager = (NotificationManager) mContext
                         .getSystemService(NOTIFICATION_SERVICE);
-                mNotificationManager.createNotificationChannel(mNotificationChannel);
+                if (null != mNotificationManager) {
+                    mNotificationManager.createNotificationChannel(mNotificationChannel);
+                }
                 mNotificationChannel.enableLights(false);
                 mNotificationChannel.enableVibration(false);
                 mNotificationChannel.setSound(null, null);
@@ -149,7 +162,7 @@ public class DownloadNotifier {
      * 发送通知
      */
     private void sent() {
-        NOTIFICATION_UPDATE_QUEUE.post(new Runnable() {
+        getNotificationUpdateQueue().post(new Runnable() {
             @Override
             public void run() {
                 mNotification = mBuilder.build();
@@ -235,7 +248,7 @@ public class DownloadNotifier {
         mBuilder.setSmallIcon(mDownloadTask.getDownloadDoneIcon());
         removeCancelAction();
         mAddedCancelAction = false;
-        NOTIFICATION_UPDATE_QUEUE.postRunnable(new Runnable() {
+        getNotificationUpdateQueue().postRunnable(new Runnable() {
             @Override
             public void run() {
                 sent();
@@ -259,7 +272,7 @@ public class DownloadNotifier {
             mBuilder.setContentText(mContext.getString(R.string.download_click_open));
             mBuilder.setProgress(100, 100, false);
             mBuilder.setContentIntent(rightPendIntent);
-            NOTIFICATION_UPDATE_QUEUE.postRunnable(new Runnable() {
+            getNotificationUpdateQueue().postRunnable(new Runnable() {
                 @Override
                 public void run() {
                     sent();
@@ -297,7 +310,7 @@ public class DownloadNotifier {
      */
     void cancel() {
         final int notificationId = mNotificationId;
-        NOTIFICATION_UPDATE_QUEUE.postRunnableScissors(new Runnable() {
+        getNotificationUpdateQueue().postRunnableScissors(new Runnable() {
             @Override
             public void run() {
                 mNotificationManager.cancel(notificationId);
@@ -309,12 +322,14 @@ public class DownloadNotifier {
         final int notificationId = downloadTask.mId;
         final Context context = downloadTask.getContext();
         final DownloadListener downloadListener = downloadTask.getDownloadListener();
-        NOTIFICATION_UPDATE_QUEUE.postRunnableScissors(new Runnable() {
+        getNotificationUpdateQueue().postRunnableScissors(new Runnable() {
             @Override
             public void run() {
                 NotificationManager notificationManager = (NotificationManager) context
                         .getSystemService(NOTIFICATION_SERVICE);
-                notificationManager.cancel(notificationId);
+                if (null != notificationManager) {
+                    notificationManager.cancel(notificationId);
+                }
             }
         });
         GlobalQueue.getMainQueue().post(new Runnable() {

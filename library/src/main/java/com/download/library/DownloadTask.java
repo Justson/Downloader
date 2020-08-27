@@ -287,6 +287,10 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
         setStatus(STATUS_SUCCESSFUL);
     }
 
+   protected void setCalculateMD5(boolean calculateMD5) {
+        this.calculateMD5 = calculateMD5;
+    }
+
     boolean isSuccessful() {
         return getStatus() == STATUS_SUCCESSFUL;
     }
@@ -318,6 +322,7 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
         retry = 3;
         fileMD5 = "";
         targetCompareMD5 = "";
+        this.calculateMD5 = false;
 //		status.set(STATUS_NEW);
     }
 
@@ -411,6 +416,7 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
             this.mAutoOpen = false;
         }
         this.targetCompareMD5 = md5;
+        this.calculateMD5 = true;
         return this;
     }
 
@@ -471,6 +477,9 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
 
     protected DownloadTask setTargetCompareMD5(String targetCompareMD5) {
         this.targetCompareMD5 = targetCompareMD5;
+        if (!TextUtils.isEmpty(this.targetCompareMD5)) {
+            calculateMD5 = true;
+        }
         return this;
     }
 
@@ -478,6 +487,7 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
         this.fileMD5 = fileMD5;
         return this;
     }
+
 
     @Override
     public String getFileMD5() {
