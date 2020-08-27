@@ -23,9 +23,5 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/download_files_public"/>
         </provider>
-        <receiver
-            android:name="com.download.library.NotificationCancelReceiver"
-            android:exported="false">
-        </receiver>
     </application>
 </manifest>

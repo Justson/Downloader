@@ -27,28 +27,30 @@ import android.text.TextUtils;
  */
 public class NotificationCancelReceiver extends BroadcastReceiver {
 
-	public static final String ACTION = "com.download.cancelled";
+    public static final String ACTION = "com.download.cancelled";
+    private static final String TAG = Runtime.PREFIX + NotificationCancelReceiver.class.getSimpleName();
 
-	public NotificationCancelReceiver() {
-	}
+    public NotificationCancelReceiver() {
+    }
 
-	@Override
-	public void onReceive(Context context, Intent intent) {
-		String action = intent.getAction();
-		if (action.equals(ACTION)) {
-			try {
-				String url = intent.getStringExtra("TAG");
-				if (!TextUtils.isEmpty(url)) {
-					DownloadImpl.getInstance().cancel(url);
-				} else {
-					Runtime.getInstance().logError(action, " error url empty");
-				}
-			} catch (Throwable ignore) {
-				if (Runtime.getInstance().isDebug()) {
-					ignore.printStackTrace();
-				}
-			}
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        String action = intent.getAction();
+        Runtime.getInstance().log(TAG, "action:" + action);
+        if (Runtime.getInstance().append(context, ACTION).equals(action)) {
+            try {
+                String url = intent.getStringExtra("TAG");
+                if (!TextUtils.isEmpty(url)) {
+                    DownloadImpl.getInstance(context).cancel(url);
+                } else {
+                    Runtime.getInstance().logError(action, " error url empty");
+                }
+            } catch (Throwable ignore) {
+                if (Runtime.getInstance().isDebug()) {
+                    ignore.printStackTrace();
+                }
+            }
 
-		}
-	}
+        }
+    }
 }

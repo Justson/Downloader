@@ -17,6 +17,7 @@
 package com.download.library;
 
 import android.content.Context;
+import android.content.IntentFilter;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
@@ -34,37 +35,48 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class DownloadImpl {
 
-    private static final DownloadImpl sInstance = new DownloadImpl();
+    private static volatile DownloadImpl sInstance;
     private final ConcurrentHashMap<String, DownloadTask> mTasks = new ConcurrentHashMap<>();
-    private static Context mContext;
-    public static final String TAG = DownloadImpl.class.getSimpleName();
+    private volatile static Context mContext;
+    public static final String TAG = Runtime.PREFIX + DownloadImpl.class.getSimpleName();
 
-    private DownloadImpl() {
+    private DownloadImpl(@NonNull Context context) {
+        Context current = mContext;
+        if (current == null) {
+            synchronized (DownloadImpl.class) {
+                if (mContext == null) {
+                    current = mContext = context.getApplicationContext();
+                    String action = Runtime.getInstance().append(context, NotificationCancelReceiver.ACTION);
+                    current.registerReceiver(new NotificationCancelReceiver(), new IntentFilter(action));
+                    Runtime.getInstance().log(TAG, "registerReceiver:" + action);
+
+                }
+            }
+        }
     }
 
-    public static DownloadImpl getInstance() {
+    public static DownloadImpl getInstance(@NonNull Context context) {
+        if (sInstance == null) {
+            synchronized (DownloadImpl.class) {
+                if (sInstance == null) {
+                    sInstance = new DownloadImpl(context);
+                }
+            }
+        }
         return sInstance;
     }
 
-    public ResourceRequest with(@NonNull Context context) {
-        if (null != context) {
-            mContext = context.getApplicationContext();
-        }
-        return ResourceRequest.with(mContext);
+    public static ResourceRequest with(@NonNull Context context) {
+        return getInstance(context).with0(context);
     }
+
 
     public ResourceRequest with(@NonNull String url) {
-        if (null == mContext) {
-            throw new NullPointerException("Context can't be null . ");
-        }
         return ResourceRequest.with(mContext).url(url);
     }
 
-    public ResourceRequest with(@NonNull Context context, @NonNull String url) {
-        if (null != context) {
-            mContext = context.getApplicationContext();
-        }
-        return ResourceRequest.with(mContext).url(url);
+    private ResourceRequest with0(@NonNull Context context) {
+        return ResourceRequest.with(mContext);
     }
 
     private void safe(@NonNull DownloadTask downloadTask) {

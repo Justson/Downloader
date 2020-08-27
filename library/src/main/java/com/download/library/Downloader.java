@@ -598,9 +598,9 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
     private String getEtag() {
         String url = mDownloadTask.getUrl();
         String urlMD5 = Runtime.getInstance().md5(url);
-        String mEtag = Runtime.getInstance().getStorageEngine(mDownloadTask.mContext).get(urlMD5, "-1");
-        if (!TextUtils.isEmpty(mEtag) && !"-1".equals(mEtag)) {
-            return mEtag;
+        String etag = Runtime.getInstance().getStorageEngine(mDownloadTask.mContext).get(urlMD5, "-1");
+        if (!TextUtils.isEmpty(etag) && !"-1".equals(etag)) {
+            return etag;
         } else {
             return null;
         }

@@ -146,7 +146,7 @@ public class ResourceRequest<T extends DownloadTask> {
     }
 
     public File get() {
-        return DownloadImpl.getInstance().call(mDownloadTask);
+        return DownloadImpl.getInstance(mDownloadTask.mContext).call(mDownloadTask);
     }
 
     public ResourceRequest setDownloadListener(DownloadListener downloadListener) {
@@ -175,22 +175,22 @@ public class ResourceRequest<T extends DownloadTask> {
     }
 
     public void enqueue() {
-        DownloadImpl.getInstance().enqueue(mDownloadTask);
+        DownloadImpl.getInstance(mDownloadTask.mContext).enqueue(mDownloadTask);
     }
 
     public void enqueue(DownloadListener downloadListener) {
         mDownloadTask.setDownloadListener(downloadListener);
-        DownloadImpl.getInstance().enqueue(mDownloadTask);
+        DownloadImpl.getInstance(mDownloadTask.mContext).enqueue(mDownloadTask);
     }
 
     public void enqueue(DownloadingListener downloadingListener) {
         mDownloadTask.setDownloadingListener(downloadingListener);
-        DownloadImpl.getInstance().enqueue(mDownloadTask);
+        DownloadImpl.getInstance(mDownloadTask.mContext).enqueue(mDownloadTask);
     }
 
     public void enqueue(DownloadListenerAdapter downloadListenerAdapter) {
         setDownloadListenerAdapter(downloadListenerAdapter);
-        DownloadImpl.getInstance().enqueue(mDownloadTask);
+        DownloadImpl.getInstance(mDownloadTask.mContext).enqueue(mDownloadTask);
     }
 
 }
