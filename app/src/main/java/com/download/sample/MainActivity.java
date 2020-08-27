@@ -111,12 +111,11 @@ public class MainActivity extends AppCompatActivity {
 //        }).start();
 
 
-        /*DownloadImpl.getInstance()
-                .with(getApplicationContext())
+        /*DownloadImpl.getInstance(getApplicationContext())
+                .url("http://shouji.360tpcdn.com/170918/f7aa8587561e4031553316ada312ab38/com.tencent.qqlive_13049.apk")
                 .setEnableIndicator(true)//启动通知
                 .addHeader("xx","cookies")//添加请求头
                 .autoOpenIgnoreMD5()//下载完成后自动打开文件，不做文件校验
-                .url("http://shouji.360tpcdn.com/170918/f7aa8587561e4031553316ada312ab38/com.tencent.qqlive_13049.apk")
                 .enqueue(new DownloadListenerAdapter() {
                     @Override
                     public void onProgress(String url, long downloaded, long length, long usedTime) {
@@ -129,51 +128,49 @@ public class MainActivity extends AppCompatActivity {
                         Log.i(TAG, " path:" + path + " url:" + url + " length:" + new File(path.getPath()).length());
                         return super.onResult(throwable, path, url, extra);
                     }
-                });
-*/
-//
-//		File dir = new File(getExternalCacheDir() + "/download/" + "public");
-//		if (!dir.exists()) {
-//			dir.mkdirs();
-//		}
-//		DownloadImpl.getInstance()
-//				.with(getApplicationContext())
-//				.target(new File(getExternalCacheDir() + "/download/" + "public" + "/" + "com.ss.android.article.news_636.apk"), this.getPackageName() + ".SampleFileProvider")//自定义路径需指定目录和authority(FileContentProvide),需要相对应匹配才能启动通知，和自动打开文件
-//				.setUniquePath(false)//是否唯一路径
-//				.setForceDownload(true)//不管网络类型
-//				.setRetry(4)//下载异常，自动重试,最多重试4次
-//				.setBlockMaxTime(60000L) //以8KB位单位，默认60s ，如果60s内无法从网络流中读满8KB数据，则抛出异常 。
-//				.setConnectTimeOut(10000L)//连接10超时
-//				.addHeader("xx", "cookie")//添加请求头
-//				.setDownloadTimeOut(Long.MAX_VALUE)//下载最大时长
-//				.setOpenBreakPointDownload(true)//打开断点续传
-//				.setParallelDownload(true)//打开多线程下载
-//				.autoOpenWithMD5("93d1695d87df5a0c0002058afc0361f1")//校验md5通过后自动打开该文件,校验失败会回调异常
-////                .autoOpenIgnoreMD5()
-////                .closeAutoOpen()
-//				.quickProgress()//快速连续回调进度，默认1.2s回调一次
-//				.url("http://shouji.360tpcdn.com/170918/93d1695d87df5a0c0002058afc0361f1/com.ss.android.article.news_636.apk")
-//				.enqueue(new DownloadListenerAdapter() {
-//					@Override
-//					public void onStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength, Extra extra) {
-//						super.onStart(url, userAgent, contentDisposition, mimetype, contentLength, extra);
-//					}
-//
-//					@MainThread //加上该注解，自动回调到主线程
-//					@Override
-//					public void onProgress(String url, long downloaded, long length, long usedTime) {
-//						super.onProgress(url, downloaded, length, usedTime);
-//						Log.i(TAG, " progress:" + downloaded + " url:" + url);
-//					}
-//
-//					@Override
-//					public boolean onResult(Throwable throwable, Uri path, String url, Extra extra) {
-//						String md5 = Runtime.getInstance().md5(new File(path.getPath()));
-//						Log.i(TAG, " path:" + path + " url:" + url + " length:" + new File(path.getPath()).length() + " md5:" + md5 + " extra.getFileMD5:" + extra.getFileMD5());
-//						return super.onResult(throwable, path, url, extra);
-//					}
-//				});
-//		run2();
+                });*/
+
+		/*File dir = new File(getExternalCacheDir() + "/download/" + "public");
+		if (!dir.exists()) {
+			dir.mkdirs();
+		}
+		DownloadImpl.getInstance(getApplicationContext())
+                .url("http://shouji.360tpcdn.com/170918/93d1695d87df5a0c0002058afc0361f1/com.ss.android.article.news_636.apk")
+                .target(new File(getExternalCacheDir() + "/download/" + "public" + "/" + "com.ss.android.article.news_636.apk"), this.getPackageName() + ".SampleFileProvider")//自定义路径需指定目录和authority(FileContentProvide),需要相对应匹配才能启动通知，和自动打开文件
+				.setUniquePath(false)//是否唯一路径
+				.setForceDownload(true)//不管网络类型
+				.setRetry(4)//下载异常，自动重试,最多重试4次
+				.setBlockMaxTime(60000L) //以8KB位单位，默认60s ，如果60s内无法从网络流中读满8KB数据，则抛出异常 。
+				.setConnectTimeOut(10000L)//连接10超时
+				.addHeader("xx", "cookie")//添加请求头
+				.setDownloadTimeOut(Long.MAX_VALUE)//下载最大时长
+				.setOpenBreakPointDownload(true)//打开断点续传
+				.setParallelDownload(true)//打开多线程下载
+				.autoOpenWithMD5("93d1695d87df5a0c0002058afc0361f1")//校验md5通过后自动打开该文件,校验失败会回调异常
+//                .autoOpenIgnoreMD5()
+//                .closeAutoOpen()
+				.quickProgress()//快速连续回调进度，默认1.2s回调一次
+				.enqueue(new DownloadListenerAdapter() {
+					@Override
+					public void onStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength, Extra extra) {
+						super.onStart(url, userAgent, contentDisposition, mimetype, contentLength, extra);
+					}
+
+					@MainThread //加上该注解，自动回调到主线程
+					@Override
+					public void onProgress(String url, long downloaded, long length, long usedTime) {
+						super.onProgress(url, downloaded, length, usedTime);
+						Log.i(TAG, " progress:" + downloaded + " url:" + url);
+					}
+
+					@Override
+					public boolean onResult(Throwable throwable, Uri path, String url, Extra extra) {
+						String md5 = Runtime.getInstance().md5(new File(path.getPath()));
+						Log.i(TAG, " path:" + path + " url:" + url + " length:" + new File(path.getPath()).length() + " md5:" + md5 + " extra.getFileMD5:" + extra.getFileMD5());
+						return super.onResult(throwable, path, url, extra);
+					}
+				});
+		run2();*/
     }
 
     private void run3() {

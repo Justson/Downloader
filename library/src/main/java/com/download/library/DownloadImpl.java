@@ -70,8 +70,11 @@ public final class DownloadImpl {
         return getInstance(context).with0(context);
     }
 
-
     public ResourceRequest with(@NonNull String url) {
+        return ResourceRequest.with(mContext).url(url);
+    }
+
+    public ResourceRequest url(@NonNull String url) {
         return ResourceRequest.with(mContext).url(url);
     }
 
