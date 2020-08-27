@@ -30,6 +30,7 @@ import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 
 import com.queue.library.DispatchThread;
+import com.queue.library.GlobalQueue;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -149,8 +150,13 @@ public class DownloadNotifier {
      * 发送通知
      */
     private void sent() {
-        mNotification = mBuilder.build();
-        mNotificationManager.notify(mNotificationId, mNotification);
+        NOTIFICATION_UPDATE_QUEUE.post(new Runnable() {
+            @Override
+            public void run() {
+                mNotification = mBuilder.build();
+                mNotificationManager.notify(mNotificationId, mNotification);
+            }
+        });
     }
 
     void onPreDownload() {
@@ -291,15 +297,35 @@ public class DownloadNotifier {
      * 根据id清除通知
      */
     void cancel() {
-        mNotificationManager.cancel(mNotificationId);
+        final int notificationId = mNotificationId;
+        NOTIFICATION_UPDATE_QUEUE.postRunnableScissors(new Runnable() {
+            @Override
+            public void run() {
+                mNotificationManager.cancel(notificationId);
+            }
+        });
     }
 
-    static void cancel(DownloadTask downloadTask) {
-        NotificationManager notificationManager = (NotificationManager) downloadTask.getContext()
-                .getSystemService(NOTIFICATION_SERVICE);
-        notificationManager.cancel(downloadTask.mId);
-        if (null != downloadTask.getDownloadListener()) {
-            downloadTask.getDownloadListener().onResult(new DownloadException(Downloader.ERROR_USER_CANCEL, DOWNLOAD_MESSAGE.get(Downloader.ERROR_USER_CANCEL)), downloadTask.getFileUri(), downloadTask.getUrl(), downloadTask);
-        }
+    static void cancel(final DownloadTask downloadTask) {
+        final int notificationId = downloadTask.mId;
+        final Context context = downloadTask.getContext();
+        final DownloadListener downloadListener = downloadTask.getDownloadListener();
+        NOTIFICATION_UPDATE_QUEUE.postRunnableScissors(new Runnable() {
+            @Override
+            public void run() {
+                NotificationManager notificationManager = (NotificationManager) context
+                        .getSystemService(NOTIFICATION_SERVICE);
+                notificationManager.cancel(notificationId);
+            }
+        });
+        GlobalQueue.getMainQueue().post(new Runnable() {
+            @Override
+            public void run() {
+                if (null != downloadListener) {
+                    downloadListener.onResult(new DownloadException(Downloader.ERROR_USER_CANCEL, DOWNLOAD_MESSAGE.get(Downloader.ERROR_USER_CANCEL)), downloadTask.getFileUri(), downloadTask.getUrl(), downloadTask);
+                }
+            }
+        });
+
     }
 }
