@@ -284,7 +284,7 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
         }
 
         private void autoOpen() {
-            getInstance().getMainQueue().postRunnableScissors(new Runnable() {
+            getMainQueue().postRunnableScissors(new Runnable() {
                 @Override
                 public void run() {
                     Intent mIntent = Runtime.getInstance().getCommonFileIntentCompat(mDownloadTask.getContext(), mDownloadTask);
