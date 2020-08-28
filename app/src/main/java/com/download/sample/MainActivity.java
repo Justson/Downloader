@@ -601,8 +601,9 @@ public class MainActivity extends AppCompatActivity {
         downloadBean = new DownloadBean("应用宝", "https://pp.myapp.com/ma_icon/0/icon_5848_1565090584/96", "http://imtt.dd.qq.com/16891/myapp/channel_78665107_1000047_48e7227d3afeb842447c73c4b7af2509.apk?hsr=5848");
         downloadBean.setContext(this.getApplicationContext());
         downloadBean.setEnableIndicator(false);
-        downloadBean.setQuickProgress(false);
+        downloadBean.setQuickProgress(true);
         downloadBean.setForceDownload(true);
+        downloadBean.autoOpenIgnoreMD5();
         downloadBean.setCalculateMD5(true);
         mDownloadTasks.add(downloadBean);
 

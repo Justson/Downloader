@@ -191,7 +191,7 @@ public final class Runtime {
             if (fileName.contains("\"")) {
                 fileName = fileName.replace("\"", "");
             }
-            String path = (dir == null || !dir.isDirectory()) ? getDir(context, extra.isEnableIndicator()).getPath() : dir.getAbsolutePath();
+            String path = (dir == null || !dir.isDirectory()) ? getDir(context, extra.isEnableIndicator() || extra.isAutoOpen()).getPath() : dir.getAbsolutePath();
             File pathFile = new File(path);
             if (!pathFile.exists()) {
                 pathFile.mkdirs();
@@ -293,7 +293,7 @@ public final class Runtime {
 
     public File uniqueFile(@NonNull DownloadTask downloadTask, @Nullable File targetDir) {
         String md5 = Runtime.getInstance().md5(downloadTask.getUrl());
-        File dir = (targetDir == null || !targetDir.isDirectory()) ? Runtime.getInstance().getDir(downloadTask.getContext(), downloadTask.isEnableIndicator()) : targetDir;
+        File dir = (targetDir == null || !targetDir.isDirectory()) ? Runtime.getInstance().getDir(downloadTask.getContext(), downloadTask.isEnableIndicator() || downloadTask.isAutoOpen()) : targetDir;
         File target = new File(dir, md5);
         if (!target.exists()) {
             target.mkdirs();

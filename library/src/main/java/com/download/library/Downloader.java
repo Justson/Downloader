@@ -16,8 +16,6 @@
 
 package com.download.library;
 
-import android.os.Build;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.StatFs;
@@ -181,24 +179,33 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
 
     private boolean checkSpace() {
         DownloadTask downloadTask = this.mDownloadTask;
-        if (downloadTask.getTotalsLength() - downloadTask.getFile().length() > (getAvailableStorage() - (100 * 1024 * 1024))) {
+        if (downloadTask.getTotalsLength() - downloadTask.getFile().length() > (getFsAvailableSize(downloadTask.getFile().getParent()) - (100 * 1024 * 1024))) {
             Runtime.getInstance().logError(TAG, " 空间不足");
             return false;
         }
         return true;
     }
 
-    private long getAvailableStorage() {
-        try {
-            StatFs stat = new StatFs(Environment.getExternalStorageDirectory().toString());
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                return stat.getAvailableBlocksLong() * stat.getBlockSizeLong();
-            } else {
-                return (long) stat.getAvailableBlocks() * (long) stat.getBlockSize();
-            }
-        } catch (RuntimeException ex) {
+    public static long getFsAvailableSize(final String anyPathInFs) {
+        if (TextUtils.isEmpty(anyPathInFs)) {
             return 0;
         }
+        try {
+            StatFs statFs = new StatFs(anyPathInFs);
+            long blockSize;
+            long availableSize;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                blockSize = statFs.getBlockSizeLong();
+                availableSize = statFs.getAvailableBlocksLong();
+            } else {
+                blockSize = statFs.getBlockSize();
+                availableSize = statFs.getAvailableBlocks();
+            }
+            return blockSize * availableSize;
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+        return 0L;
     }
 
     private boolean checkNet() {
@@ -230,7 +237,7 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
             return ERROR_NETWORK_CONNECTION;
         }
         mDownloadMessage.append("\r\n").append("=============").append("\n");
-        mDownloadMessage.append("Downloader").append("\n");
+        mDownloadMessage.append("Download Message").append("\n");
         mDownloadMessage.append("downloadTask id=").append(downloadTask.getId()).append("\n");
         mDownloadMessage.append("url=").append(downloadTask.getUrl()).append("\n");
         try {
