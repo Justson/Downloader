@@ -56,10 +56,10 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
                 Log.e(TAG, "task exists:" + downloadTask.getUrl());
                 return false;
             }
+            Downloader downloader = (Downloader) Downloader.create(downloadTask);
+            ExecuteTasksMap.getInstance().addTask(downloadTask.getUrl(), downloader);
+            execute(new DownloadStartTask(downloadTask, downloader));
         }
-        Downloader downloader = (Downloader) Downloader.create(downloadTask);
-        ExecuteTasksMap.getInstance().addTask(downloadTask.getUrl(), downloader);
-        execute(new DownloadStartTask(downloadTask, downloader));
         return true;
     }
 

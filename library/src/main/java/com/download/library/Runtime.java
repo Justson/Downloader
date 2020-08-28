@@ -154,8 +154,8 @@ public final class Runtime {
         sDefaultDownloadTask = downloadTask;
     }
 
-    public String getIdentify() {
-        return "Downloader";
+    public String getIdentify(Context context) {
+        return append(context, "Downloader");
     }
 
     public String getVersion() {

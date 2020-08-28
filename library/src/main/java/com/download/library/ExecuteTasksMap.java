@@ -31,7 +31,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * @date 2018/2/12
  */
 public final class ExecuteTasksMap {
-	private ConcurrentHashMap<String, ExecuteTask> mTasks = null;
+	
+	private ConcurrentHashMap<String, ExecuteTask> mTasks;
 
 	private ExecuteTasksMap() {
 		mTasks = new ConcurrentHashMap<>();
