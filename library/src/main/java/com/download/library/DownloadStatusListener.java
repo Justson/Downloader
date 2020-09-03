@@ -12,6 +12,6 @@ public interface DownloadStatusListener {
      * @param extra
      * @param status
      */
-    void onDownloadStatusChanged(Extra extra, int status);
+    void onDownloadStatusChanged(Extra extra,@DownloadTask.DownloadTaskStatus int status);
 
 }
