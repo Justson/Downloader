@@ -18,7 +18,6 @@ package com.download.library;
 
 import android.content.Context;
 import android.content.IntentFilter;
-import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import java.io.File;
@@ -27,6 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
+import androidx.annotation.NonNull;
 
 /**
  * @author cenxiaozhong

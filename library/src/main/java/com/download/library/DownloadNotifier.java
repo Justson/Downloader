@@ -25,8 +25,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.SystemClock;
-import android.support.annotation.NonNull;
-import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 
 import com.queue.library.DispatchThread;
@@ -35,6 +33,9 @@ import com.queue.library.GlobalQueue;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Locale;
+
+import androidx.annotation.NonNull;
+import androidx.core.app.NotificationCompat;
 
 import static android.content.Context.NOTIFICATION_SERVICE;
 import static com.download.library.Downloader.DOWNLOAD_MESSAGE;

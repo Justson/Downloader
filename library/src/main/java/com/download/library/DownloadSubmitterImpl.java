@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Looper;
 import android.os.Process;
-import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -16,6 +15,8 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
+
+import androidx.annotation.NonNull;
 
 import static com.download.library.DownloadTask.STATUS_PAUSED;
 import static com.download.library.Downloader.DOWNLOAD_MESSAGE;
