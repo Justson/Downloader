@@ -91,7 +91,7 @@ public final class Runtime {
     public StorageEngine getStorageEngine(Context context) {
         StorageEngine storageEngine = this.mStorageEngine;
         if (null == storageEngine) {
-            storageEngine = this.mStorageEngine = getStorageEngineFactory().newStoraEngine(context);
+            storageEngine = this.mStorageEngine = getStorageEngineFactory().newStorageEngine(context);
         }
         return storageEngine;
     }

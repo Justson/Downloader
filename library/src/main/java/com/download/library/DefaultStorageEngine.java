@@ -48,7 +48,7 @@ public class DefaultStorageEngine implements StorageEngine {
 	public static class DefaultStorageEngineFactory implements StorageEngine.StorageEngineFactory {
 
 		@Override
-		public StorageEngine newStoraEngine(Context context) {
+		public StorageEngine newStorageEngine(Context context) {
 			return new DefaultStorageEngine(context);
 		}
 	}
