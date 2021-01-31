@@ -26,14 +26,13 @@ Downloader 是一个非常轻巧以及功能强大快速下载库，只有50KB �
 ```
 allprojects {
 	repositories {
-			...
-			maven { url 'https://jitpack.io' }
+			jcenter()
 	}
 }
 ```
 
 ```
-implementation 'com.download.library:Downloader:4.1.4'
+implementation 'com.wandroid:Downloader:1.0.0'
 ```
 
 ## 例子

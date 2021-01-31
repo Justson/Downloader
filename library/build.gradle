@@ -48,14 +48,11 @@ dependencies {
 //}
 
 publish {
-    def groupProjectID = 'com.download.library'
-    def artifactProjectID = 'downloader-androidx'
-    def publishVersionID = '4.1.4'
-    userOrg = 'just'
-    groupId = groupProjectID
-    artifactId = artifactProjectID
-    publishVersion = publishVersionID
+    userOrg = 'angelwangjing'
+    groupId = 'com.wandroid'
+    artifactId = 'downloader-androidx'
+    publishVersion = '1.0.0'
     desc = 'Downloader is a lightweight powerful Android file download library'
-    website = 'https://github.com/Justson/Downloader'
+    website = 'https://github.com/wangjing53406/Downloader'
 
 }
