@@ -2,7 +2,7 @@ apply plugin: 'com.novoda.bintray-release'
 apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'maven-publish'
-group='com.download.library'
+
 android {
     compileSdkVersion COMPILE_SDK_VERSION.toInteger()
     buildToolsVersion BUILD_TOOL_VERSION
@@ -13,16 +13,21 @@ android {
         versionCode 2
         versionName "4.1.4"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
-
+        consumerProguardFiles "consumer-rules.pro"
     }
 
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            buildConfigField "String", "VERSION_NAME", '"1.0.0"'
+        }
+        debug {
+            buildConfigField "String", "VERSION_NAME", '"1.0.0"'
+            minifyEnabled false
         }
     }
-    lintOptions{
+    lintOptions {
         abortOnError false
     }
     repositories {
