@@ -145,7 +145,9 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
                         mDownloader.mCallbackInMainThread = mCallbackInMainThread;
                         Runtime.getInstance().log(TAG, " callback in main-Thread:" + mCallbackInMainThread);
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        if (Runtime.getInstance().isDebug()) {
+                            e.printStackTrace();
+                        }
                     }
                 }
                 if (mDownloadTask.getStatus() != STATUS_PAUSED) {

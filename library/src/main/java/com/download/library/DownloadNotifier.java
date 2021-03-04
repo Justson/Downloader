@@ -247,18 +247,17 @@ public class DownloadNotifier {
         }
         mBuilder.setContentText(this.mContent.concat("(").concat(mContext.getString(R.string.download_paused)).concat(")"));
         mBuilder.setSmallIcon(mDownloadTask.getDownloadDoneIcon());
-        removeCancelAction();
-        mAddedCancelAction = false;
         getNotificationUpdateQueue().postRunnable(new Runnable() {
             @Override
             public void run() {
+                removeCancelAction();
+                mAddedCancelAction = false;
                 sent();
             }
         }, getDelayTime());
     }
 
     void onDownloadFinished() {
-        removeCancelAction();
         Intent mIntent = Runtime.getInstance().getCommonFileIntentCompat(mContext, mDownloadTask);
         setDelecte(null);
         if (null != mIntent) {
@@ -276,6 +275,7 @@ public class DownloadNotifier {
             getNotificationUpdateQueue().postRunnable(new Runnable() {
                 @Override
                 public void run() {
+                    removeCancelAction();
                     sent();
                 }
             }, getDelayTime());
