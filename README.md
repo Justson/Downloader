@@ -33,7 +33,7 @@ allprojects {
 ```
 
 ```
-implementation 'com.download.library:Downloader:4.1.4'
+implementation 'com.download.library:Downloader:4.1.5'
 ```
 
 ## 例子
