@@ -291,7 +291,13 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
                     if (!(mDownloadTask.getContext() instanceof Activity)) {
                         mIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     }
-                    mDownloadTask.getContext().startActivity(mIntent);
+                    try {
+                        mDownloadTask.getContext().startActivity(mIntent);
+                    } catch (Throwable throwable) {
+                        if (Runtime.getInstance().isDebug()) {
+                            throwable.printStackTrace();
+                        }
+                    }
                 }
             });
         }
