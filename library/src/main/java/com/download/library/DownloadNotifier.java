@@ -175,37 +175,49 @@ public class DownloadNotifier {
         sent();
     }
 
-    void onDownloading(int progress) {
-        if (!this.hasDeleteContent()) {
-            this.setDelecte(buildCancelContent(mContext, mNotificationId, mDownloadTask.mUrl));
-        }
-        if (!mAddedCancelAction) {
-            mAddedCancelAction = true;
-            mAction = new NotificationCompat.Action(android.R.color.transparent,
-                    mContext.getString(android.R.string.cancel),
-                    buildCancelContent(mContext, mNotificationId, mDownloadTask.mUrl));
-            mBuilder.addAction(mAction);
+    void onDownloading(final int progress) {
+        getNotificationUpdateQueue().postRunnable(new Runnable() {
+            @Override
+            public void run() {
+                if (!hasDeleteContent()) {
+                    setDelecte(buildCancelContent(mContext, mNotificationId, mDownloadTask.mUrl));
+                }
+                if (!mAddedCancelAction) {
+                    mAddedCancelAction = true;
+                    mAction = new NotificationCompat.Action(android.R.color.transparent,
+                            mContext.getString(android.R.string.cancel),
+                            buildCancelContent(mContext, mNotificationId, mDownloadTask.mUrl));
+                    mBuilder.addAction(mAction);
 
-        }
-        mBuilder.setContentText(this.mContent = mContext.getString(R.string.download_current_downloading_progress, (progress + "%")));
-        this.setProgress(100, progress, false);
-        sent();
+                }
+                mBuilder.setContentText(mContent = mContext.getString(R.string.download_current_downloading_progress, (progress + "%")));
+                setProgress(100, progress, false);
+//                sent();
+            }
+        });
+
     }
 
-    void onDownloaded(long loaded) {
-        if (!this.hasDeleteContent()) {
-            this.setDelecte(buildCancelContent(mContext, mNotificationId, mDownloadTask.mUrl));
-        }
-        if (!mAddedCancelAction) {
-            mAddedCancelAction = true;
-            mAction = new NotificationCompat.Action(mDownloadTask.getDownloadIcon(),
-                    mContext.getString(android.R.string.cancel),
-                    buildCancelContent(mContext, mNotificationId, mDownloadTask.mUrl));
-            mBuilder.addAction(mAction);
-        }
-        mBuilder.setContentText(this.mContent = mContext.getString(R.string.download_current_downloaded_length, byte2FitMemorySize(loaded)));
-        this.setProgress(100, 20, true);
-        sent();
+    void onDownloaded(final long loaded) {
+        getNotificationUpdateQueue().postRunnable(new Runnable() {
+            @Override
+            public void run() {
+                if (!hasDeleteContent()) {
+                    setDelecte(buildCancelContent(mContext, mNotificationId, mDownloadTask.mUrl));
+                }
+                if (!mAddedCancelAction) {
+                    mAddedCancelAction = true;
+                    mAction = new NotificationCompat.Action(mDownloadTask.getDownloadIcon(),
+                            mContext.getString(android.R.string.cancel),
+                            buildCancelContent(mContext, mNotificationId, mDownloadTask.mUrl));
+                    mBuilder.addAction(mAction);
+                }
+                mBuilder.setContentText(mContent = mContext.getString(R.string.download_current_downloaded_length, byte2FitMemorySize(loaded)));
+                setProgress(100, 20, true);
+//                sent();
+            }
+        });
+
     }
 
     private long getDelayTime() {
@@ -238,43 +250,44 @@ public class DownloadNotifier {
 
     void onDownloadPaused() {
         Runtime.getInstance().log(TAG, " onDownloadPaused:" + mDownloadTask.getUrl());
-        if (!this.hasDeleteContent()) {
-            this.setDelecte(buildCancelContent(mContext, mNotificationId, mDownloadTask.mUrl));
-        }
-        if (TextUtils.isEmpty(this.mContent)) {
-            this.mContent = "";
-        }
-        mBuilder.setContentText(this.mContent.concat("(").concat(mContext.getString(R.string.download_paused)).concat(")"));
-        mBuilder.setSmallIcon(mDownloadTask.getDownloadDoneIcon());
-        removeCancelAction();
-        mAddedCancelAction = false;
         getNotificationUpdateQueue().postRunnable(new Runnable() {
             @Override
             public void run() {
+                if (!hasDeleteContent()) {
+                    setDelecte(buildCancelContent(mContext, mNotificationId, mDownloadTask.mUrl));
+                }
+                if (TextUtils.isEmpty(mContent)) {
+                    mContent = "";
+                }
+                mBuilder.setContentText(mContent.concat("(").concat(mContext.getString(R.string.download_paused)).concat(")"));
+                mBuilder.setSmallIcon(mDownloadTask.getDownloadDoneIcon());
+                removeCancelAction();
+                mAddedCancelAction = false;
                 sent();
             }
         }, getDelayTime());
     }
 
     void onDownloadFinished() {
-        removeCancelAction();
-        Intent mIntent = Runtime.getInstance().getCommonFileIntentCompat(mContext, mDownloadTask);
-        setDelecte(null);
+        final Intent mIntent = Runtime.getInstance().getCommonFileIntentCompat(mContext, mDownloadTask);
         if (null != mIntent) {
             if (!(mContext instanceof Activity)) {
                 mIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             }
-            PendingIntent rightPendIntent = PendingIntent
-                    .getActivity(mContext,
-                            mNotificationId * 10000, mIntent,
-                            PendingIntent.FLAG_UPDATE_CURRENT);
-            mBuilder.setSmallIcon(mDownloadTask.getDownloadDoneIcon());
-            mBuilder.setContentText(mContext.getString(R.string.download_click_open));
-            mBuilder.setProgress(100, 100, false);
-            mBuilder.setContentIntent(rightPendIntent);
+
             getNotificationUpdateQueue().postRunnable(new Runnable() {
                 @Override
                 public void run() {
+                    removeCancelAction();
+                    setDelecte(null);
+                    PendingIntent rightPendIntent = PendingIntent
+                            .getActivity(mContext,
+                                    mNotificationId * 10000, mIntent,
+                                    PendingIntent.FLAG_UPDATE_CURRENT);
+                    mBuilder.setSmallIcon(mDownloadTask.getDownloadDoneIcon());
+                    mBuilder.setContentText(mContext.getString(R.string.download_click_open));
+                    mBuilder.setProgress(100, 100, false);
+                    mBuilder.setContentIntent(rightPendIntent);
                     sent();
                 }
             }, getDelayTime());
