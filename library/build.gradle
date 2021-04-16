@@ -11,7 +11,7 @@ android {
         minSdkVersion 14
         targetSdkVersion TARGET_SDK_VERSION.toInteger()
         versionCode 2
-        versionName "4.1.4"
+        versionName "4.1.5"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
 
     }
@@ -50,7 +50,7 @@ dependencies {
 publish {
     def groupProjectID = 'com.download.library'
     def artifactProjectID = 'downloader-androidx'
-    def publishVersionID = '4.1.4'
+    def publishVersionID = '4.1.5'
     userOrg = 'just'
     groupId = groupProjectID
     artifactId = artifactProjectID

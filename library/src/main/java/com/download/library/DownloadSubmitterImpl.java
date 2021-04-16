@@ -17,7 +17,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 
 import androidx.annotation.NonNull;
-
 import static com.download.library.DownloadTask.STATUS_PAUSED;
 import static com.download.library.Downloader.DOWNLOAD_MESSAGE;
 import static com.download.library.Downloader.ERROR_LOAD;
@@ -297,7 +296,9 @@ public class DownloadSubmitterImpl implements DownloadSubmitter {
                     try {
                         mDownloadTask.getContext().startActivity(mIntent);
                     } catch (Throwable throwable) {
-                        throwable.printStackTrace();
+                        if (Runtime.getInstance().isDebug()) {
+                            throwable.printStackTrace();
+                        }
                     }
                 }
             });
