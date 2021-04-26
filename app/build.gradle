@@ -31,9 +31,9 @@ dependencies {
     implementation "com.android.support:design:${SUPPORT_LIB_VERSION}"
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     testImplementation 'junit:junit:4.12'
-//    implementation project(':library')
-    implementation 'com.download.library:Downloader:4.1.5'
-    implementation 'com.just.agentweb:agentweb:4.1.3'
+    implementation project(':library')
+//    implementation 'com.download.library:Downloader:4.1.5'
+    implementation 'com.github.Justson.AgentWeb:agentweb:v4.1.8'
     implementation 'com.squareup.picasso:picasso:2.71828'
     implementation 'com.liulishuo.filedownloader:library:1.7.4'
 }
