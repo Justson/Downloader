@@ -1,8 +1,4 @@
-apply plugin: 'com.novoda.bintray-release'
 apply plugin: 'com.android.library'
-apply plugin: 'com.github.dcendents.android-maven'
-apply plugin: 'maven-publish'
-group='com.download.library'
 android {
     compileSdkVersion COMPILE_SDK_VERSION.toInteger()
     buildToolsVersion BUILD_TOOL_VERSION
@@ -11,7 +7,7 @@ android {
         minSdkVersion 14
         targetSdkVersion TARGET_SDK_VERSION.toInteger()
         versionCode 2
-        versionName "4.1.5"
+        versionName "4.1.9"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
 
     }
@@ -42,20 +38,4 @@ dependencies {
     compileOnly 'com.google.android.material:material:1.0.0'
     compileOnly 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.github.Justson:dispatch-queue:v1.0.5'
-}
-//task javadoc(type: Javadoc) {
-//    options.encoding = "utf-8"
-//}
-
-publish {
-    def groupProjectID = 'com.download.library'
-    def artifactProjectID = 'downloader-androidx'
-    def publishVersionID = '4.1.5'
-    userOrg = 'just'
-    groupId = groupProjectID
-    artifactId = artifactProjectID
-    publishVersion = publishVersionID
-    desc = 'Downloader is a lightweight powerful Android file download library'
-    website = 'https://github.com/Justson/Downloader'
-
 }
