@@ -7,7 +7,7 @@ android {
         minSdkVersion 14
         targetSdkVersion TARGET_SDK_VERSION.toInteger()
         versionCode 2
-        versionName "4.1.9"
+        versionName "4.2.0"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
 
     }

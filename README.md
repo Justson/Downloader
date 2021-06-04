@@ -33,23 +33,21 @@ allprojects {
 ```
 
 ```
- implementation 'com.github.Justson:Downloader:v4.1.9' 
+ implementation 'com.github.Justson:Downloader:v4.2.0' 
 ```
 
 ## 例子
 
 #### 同步
 ```java
-File file = DownloadImpl.getInstance()
-				.with(getApplicationContext())
+File file = DownloadImpl.getInstance(getApplicationContext())
 				.url("http://shouji.360tpcdn.com/170918/93d1695d87df5a0c0002058afc0361f1/com.ss.android.article.news_636.apk")
 				.get();
 ```
 
 #### 异步
 ```java
-DownloadImpl.getInstance()
-                .with(getApplicationContext())
+DownloadImpl.getInstance(getApplicationContext())
                 .url("http://shouji.360tpcdn.com/170918/f7aa8587561e4031553316ada312ab38/com.tencent.qqlive_13049.apk")
                 .enqueue();
 ```
