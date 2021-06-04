@@ -86,17 +86,18 @@ public class MainActivity extends AppCompatActivity {
 //        new Thread(new Runnable() {
 //            @Override
 //            public void run() {
+//                Context context = getApplicationContext();
 //                /**
 //                 *  文件同步下载
 //                 */
 //                File file = DownloadImpl.getInstance(getApplicationContext())
 //                        .with("http://www.httpwatch.com/httpgallery/chunked/chunkedimage.aspx?0.04400023248109086")
-//                        .target(new File(getCacheDir(), "t01a16bcd9acd07d029.png"))
+//                        .target(context.getCacheDir().getAbsolutePath() + "/a/b/c/d/f/e/g.apk")
 //                        .setDownloadListenerAdapter(new DownloadListenerAdapter() {
 //                            @Override
 //                            public void onProgress(String url, long downloaded, long length, long usedTime) {
 //                                super.onProgress(url, downloaded, length, usedTime);
-////                                Log.i(TAG, " downloaded:" + downloaded);
+//                                Log.i(TAG, " downloaded:" + downloaded);
 //                            }
 //
 //                            @Override
