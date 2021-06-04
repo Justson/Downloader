@@ -8,10 +8,7 @@
     </uses-permission>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE">
     </uses-permission>
-    <application
-        android:allowBackup="true"
-        android:supportsRtl="true"
-        >
+    <application>
         <provider
             android:name="com.download.library.DownloadFileProvider"
             android:authorities="${applicationId}.DownloadFileProvider"
