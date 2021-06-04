@@ -163,21 +163,6 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
     }
 
     protected DownloadTask setFile(@NonNull File file) {
-        if (!file.exists() && file.isFile()) {
-            try {
-                String parentPath = file.getParent();
-                File parent = new File(parentPath);
-                if (!parent.exists()) {
-                    parent.mkdirs();
-                }
-
-                file.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-                Runtime.getInstance().logError(TAG, "create file error .");
-                return this;
-            }
-        }
         mFile = file;
         this.authority = "";
         checkCustomFilePath(file);
@@ -287,7 +272,7 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
         setStatus(STATUS_SUCCESSFUL);
     }
 
-   protected void setCalculateMD5(boolean calculateMD5) {
+    protected void setCalculateMD5(boolean calculateMD5) {
         this.calculateMD5 = calculateMD5;
     }
 

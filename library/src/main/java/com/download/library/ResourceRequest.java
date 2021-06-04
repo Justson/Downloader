@@ -20,8 +20,10 @@ import android.content.Context;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 
 /**
@@ -30,7 +32,10 @@ import java.util.HashMap;
  * @since 1.0.0
  */
 public class ResourceRequest<T extends DownloadTask> {
+
+    static final String TAG = Runtime.PREFIX + ResourceRequest.class.getSimpleName();
     private DownloadTask mDownloadTask;
+
 
     static ResourceRequest with(Context context) {
         ResourceRequest resourceRequest = new ResourceRequest();
@@ -45,7 +50,48 @@ public class ResourceRequest<T extends DownloadTask> {
     }
 
     public ResourceRequest target(@Nullable File target) {
+        File file = target;
+        if (!file.exists()) {
+            try {
+                File parent = file.getParentFile();
+                if (!parent.exists()) {
+                    parent.mkdirs();
+                }
+                file.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+                Runtime.getInstance().logError(TAG, "create file error .");
+                return this;
+            }
+        }
         mDownloadTask.setFile(target);
+        return this;
+    }
+
+    public ResourceRequest target(@NonNull String target) {
+        if (TextUtils.isEmpty(target)) {
+            return this;
+        }
+        return target(new File(target));
+    }
+
+    public ResourceRequest targetDir(@Nullable File target) {
+        if (!target.exists()) {
+            target.mkdirs();
+        }
+        mDownloadTask.setFile(target);
+        return this;
+    }
+
+    public ResourceRequest targetDir(@NonNull String target) {
+        if (TextUtils.isEmpty(target)) {
+            return this;
+        }
+        File targetDir = new File(target);
+        if (!targetDir.exists()) {
+            targetDir.mkdirs();
+        }
+        mDownloadTask.setFile(targetDir);
         return this;
     }
 

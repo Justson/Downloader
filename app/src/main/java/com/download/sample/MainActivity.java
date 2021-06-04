@@ -82,33 +82,34 @@ public class MainActivity extends AppCompatActivity {
                 List<DownloadTask> downloadTasks = DownloadImpl.getInstance(getApplicationContext()).cancelAll();
             }
         });
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                /**
-//                 *  文件同步下载
-//                 */
-//                File file = DownloadImpl.getInstance(getApplicationContext())
-//                        .with("http://www.httpwatch.com/httpgallery/chunked/chunkedimage.aspx?0.04400023248109086")
-//                        .target(new File(getCacheDir(), "t01a16bcd9acd07d029.png"))
-//                        .setDownloadListenerAdapter(new DownloadListenerAdapter() {
-//                            @Override
-//                            public void onProgress(String url, long downloaded, long length, long usedTime) {
-//                                super.onProgress(url, downloaded, length, usedTime);
-////                                Log.i(TAG, " downloaded:" + downloaded);
-//                            }
-//
-//                            @Override
-//                            public boolean onResult(Throwable throwable, Uri path, String url, Extra extra) {
-//                                Log.i(TAG, "downloaded onResult isSuccess:" + (throwable == null) + " url:" + url + " Thread:" + Thread.currentThread().getName() + " uri:" + path.toString());
-//
-//                                return super.onResult(throwable, path, url, extra);
-//                            }
-//                        }).get();
-//                Log.i(TAG, " download success file length:" + byte2FitMemorySize(((File) file).length()) + " name:" + file.getName());
-//
-//            }
-//        }).start();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Context context = getApplicationContext();
+                /**
+                 *  文件同步下载
+                 */
+                File file = DownloadImpl.getInstance(getApplicationContext())
+                        .with("http://www.httpwatch.com/httpgallery/chunked/chunkedimage.aspx?0.04400023248109086")
+                        .target(context.getCacheDir().getAbsolutePath() + "/a/b/c/d/f/e/g.apk")
+                        .setDownloadListenerAdapter(new DownloadListenerAdapter() {
+                            @Override
+                            public void onProgress(String url, long downloaded, long length, long usedTime) {
+                                super.onProgress(url, downloaded, length, usedTime);
+                                Log.i(TAG, " downloaded:" + downloaded);
+                            }
+
+                            @Override
+                            public boolean onResult(Throwable throwable, Uri path, String url, Extra extra) {
+                                Log.i(TAG, "downloaded onResult isSuccess:" + (throwable == null) + " url:" + url + " Thread:" + Thread.currentThread().getName() + " uri:" + path.toString());
+
+                                return super.onResult(throwable, path, url, extra);
+                            }
+                        }).get();
+                Log.i(TAG, " download success file length:" + byte2FitMemorySize(((File) file).length()) + " name:" + file.getName());
+
+            }
+        }).start();
 
 
         /*DownloadImpl.getInstance(getApplicationContext())
