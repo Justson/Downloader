@@ -32,11 +32,17 @@ allprojects {
 }
 ```
 
-```
- implementation 'com.github.Justson:Downloader:v4.2.0' 
-or
- implementation 'com.github.Justson:Downloader:v4.2.0-androidx'
-```
+* Support
+
+   ```groovy
+	implementation 'com.github.Justson:Downloader:v5.0.0' 
+	```
+
+* Androidx
+
+   ```groovy
+    implementation 'com.github.Justson:Downloader:v5.0.0-androidx'
+   ```
 
 ## 例子
 
