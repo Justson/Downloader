@@ -23,6 +23,7 @@ import android.support.annotation.DrawableRes;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
+import android.util.Base64;
 
 import com.queue.library.GlobalQueue;
 
@@ -510,6 +511,11 @@ public class DownloadTask extends Extra implements Serializable, Cloneable {
             mDownloadNotifier.onPreDownload();
         }
     }
+
+    boolean isDataURI() {
+        return !TextUtils.isEmpty(mUrl) && mUrl.startsWith("data");
+    }
+
 
     String getRedirect() {
         return redirect;

@@ -30,6 +30,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.content.FileProvider;
 import android.text.TextUtils;
 import android.util.Log;
+import android.webkit.MimeTypeMap;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -63,6 +64,7 @@ public final class Runtime {
     private static final Pattern CONTENT_DISPOSITION_WITHOUT_ASTERISK_PATTERN =
             Pattern.compile("attachment;\\s*filename\\s*=\\s*\"*([^\"\\n]*)\"*");
     static final String PREFIX = "Download-";
+    private static final String TAG = Runtime.class.getSimpleName();
     boolean DEBUG = BuildConfig.DEBUG;
     private String authority;
     private StorageEngine mStorageEngine;
@@ -170,16 +172,17 @@ public final class Runtime {
         return mThreadGlobalCounter.getAndIncrement();
     }
 
-    public File createFile(Context context, Extra extra) {
-        return createFile(context, extra, null);
+    public File createFile(Context context, DownloadTask downloadTask) {
+        return createFile(context, downloadTask, null);
     }
 
-    public File createFile(Context context, Extra extra, File dir) {
+    public File createFile(Context context, DownloadTask downloadTask, File dir) {
         String fileName = "";
         try {
-            fileName = getFileNameByContentDisposition(extra.getContentDisposition());
-            if (TextUtils.isEmpty(fileName) && !TextUtils.isEmpty(extra.getUrl())) {
-                Uri mUri = Uri.parse(extra.getUrl());
+
+            fileName = getFileNameByContentDisposition(downloadTask.getContentDisposition());
+            if (TextUtils.isEmpty(fileName) && !TextUtils.isEmpty(downloadTask.getUrl())) {
+                Uri mUri = Uri.parse(downloadTask.getUrl());
                 if (null != mUri && !TextUtils.isEmpty(mUri.getPath()) && mUri.getPath().contains("/")) {
                     fileName = mUri.getPath().substring(mUri.getPath().lastIndexOf('/') + 1);
                 }
@@ -188,21 +191,46 @@ public final class Runtime {
                 fileName = fileName.substring(fileName.length() - 64, fileName.length());
             }
             if (TextUtils.isEmpty(fileName)) {
-                fileName = md5(extra.getUrl());
+                fileName = md5(downloadTask.getUrl());
             }
             if (fileName.contains("\"")) {
                 fileName = fileName.replace("\"", "");
             }
-            String path = (dir == null || !dir.isDirectory()) ? getDir(context, extra.isEnableIndicator() || extra.isAutoOpen()).getPath() : dir.getAbsolutePath();
+            String path = (dir == null || !dir.isDirectory()) ? getDir(context, downloadTask.isEnableIndicator() || downloadTask.isAutoOpen()).getPath() : dir.getAbsolutePath();
             File pathFile = new File(path);
             if (!pathFile.exists()) {
                 pathFile.mkdirs();
             }
-            return createFileByName(pathFile, context, fileName, !extra.isBreakPointDownload());
+            if (downloadTask.isDataURI() && !fileName.contains(".")) {
+                String extension = findExtensionFromUri(downloadTask.getUrl());
+//                log(TAG, "extension:" + extension);
+                fileName = fileName + "." + extension;
+//                fileName = fileName + extension;
+
+            }
+            return createFileByName(pathFile, context, fileName, !downloadTask.isBreakPointDownload());
         } catch (Throwable e) {
             e.printStackTrace();
         }
         return null;
+    }
+
+    private String findExtensionFromUri(String url) {
+        int end = -1;
+        for (int i = 5; i < url.length(); i++) {
+            String c = String.valueOf(url.charAt(i));
+            if (c.equalsIgnoreCase(";")) {
+                end = i;
+            } else if (c.equalsIgnoreCase(",")) {
+                break;
+            }
+        }
+        if (end > 5) {
+            String mimeType = url.substring(5, end);
+            log(TAG, "mimeType:" + mimeType);
+            return MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType);
+        }
+        return "";
     }
 
     boolean checkWifi(Context context) {
@@ -283,7 +311,9 @@ public final class Runtime {
 
     public void log(String tag, String msg) {
         if (DEBUG) {
-            Log.i(tag, msg);
+            if (!TextUtils.isEmpty(msg)) {
+                Log.i(tag, msg);
+            }
         }
     }
 
@@ -373,7 +403,7 @@ public final class Runtime {
 
     public Intent getCommonFileIntentCompat(Context context, DownloadTask downloadTask) {
         Intent mIntent = new Intent().setAction(Intent.ACTION_VIEW);
-        setIntentDataAndType(context, mIntent, getMIMEType(downloadTask.getFile()), downloadTask.getFile(), false, downloadTask.isCustomFile() ? downloadTask.getAuthority() : getAuthority(downloadTask.getContext()));
+        setIntentDataAndType(context, mIntent, getMimeType(downloadTask.getFile()), downloadTask.getFile(), false, downloadTask.isCustomFile() ? downloadTask.getAuthority() : getAuthority(downloadTask.getContext()));
         return mIntent;
     }
 
@@ -413,29 +443,17 @@ public final class Runtime {
         }
     }
 
-    public String getMIMEType(File f) {
-        String type = "";
-        String fName = f.getName();
-        String end = fName.substring(fName.lastIndexOf(".") + 1, fName.length()).toLowerCase();
-        if (end.equals("pdf")) {
-            type = "application/pdf";
-        } else if (end.equals("m4a") || end.equals("mp3") || end.equals("mid") ||
-                end.equals("xmf") || end.equals("ogg") || end.equals("wav")) {
-            type = "audio/*";
-        } else if (end.equals("3gp") || end.equals("mp4")) {
-            type = "video/*";
-        } else if (end.equals("jpg") || end.equals("gif") || end.equals("png") ||
-                end.equals("jpeg") || end.equals("bmp")) {
-            type = "image/*";
-        } else if (end.equals("apk")) {
-            type = "application/vnd.android.package-archive";
-        } else if (end.equals("pptx") || end.equals("ppt")) {
-            type = "application/vnd.ms-powerpoint";
-        } else if (end.equals("docx") || end.equals("doc")) {
-            type = "application/vnd.ms-word";
-        } else if (end.equals("xlsx") || end.equals("xls")) {
-            type = "application/vnd.ms-excel";
-        } else {
+    public String getMimeType(File file) {
+        String type;
+        String fileName = file.getName();
+        if (!fileName.contains(".")) {
+            type = "*/*";
+            return type;
+        }
+        String extension = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
+        type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+        Runtime.getInstance().log(TAG, type);
+        if (TextUtils.isEmpty(type)) {
             type = "*/*";
         }
         return type;
