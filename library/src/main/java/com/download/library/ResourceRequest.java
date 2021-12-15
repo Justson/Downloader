@@ -110,11 +110,6 @@ public class ResourceRequest<T extends DownloadTask> {
         return this;
     }
 
-    protected ResourceRequest setContentLength(long contentLength) {
-        mDownloadTask.mContentLength = contentLength;
-        return this;
-    }
-
 
     public ResourceRequest setDownloadTimeOut(long downloadTimeOut) {
         mDownloadTask.downloadTimeOut = downloadTimeOut;
@@ -218,6 +213,26 @@ public class ResourceRequest<T extends DownloadTask> {
 
     public ResourceRequest quickProgress() {
         mDownloadTask.setQuickProgress(true);
+        return this;
+    }
+
+    public ResourceRequest setContentDisposition(String contentDisposition) {
+        mDownloadTask.setContentDisposition(contentDisposition);
+        return this;
+    }
+
+    public ResourceRequest setMimetype(String mimetype) {
+        mDownloadTask.setMimetype(mimetype);
+        return this;
+    }
+
+    public ResourceRequest setUserAgent(String userAgent) {
+        mDownloadTask.setUserAgent(userAgent);
+        return this;
+    }
+
+    public ResourceRequest setContentLength(long contentLength) {
+        mDownloadTask.setContentLength(contentLength);
         return this;
     }
 
