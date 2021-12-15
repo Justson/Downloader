@@ -3,7 +3,7 @@ Downloader 是一个非常轻巧以及功能强大快速下载库，只有50KB �
 
 ## 预览图
 
-<a href="img/download1.jpg"><img src="img/download1.jpg" width="48%"/></a> <a href="img/download2.jpg"><img src="img/download2.jpg" width="48%"/></a> 
+<a href="img/download1.jpg"><img src="img/download1.jpg" width="48%"/></a> <a href="img/download2.jpg"><img src="img/download2.jpg" width="48%"/></a>
 
 ## 特性
 
@@ -48,36 +48,36 @@ File file = DownloadImpl.getInstance(getApplicationContext())
 #### 异步
 ```java
 DownloadImpl.getInstance(getApplicationContext())
-                .url("http://shouji.360tpcdn.com/170918/f7aa8587561e4031553316ada312ab38/com.tencent.qqlive_13049.apk")
-                .enqueue();
+        .url("http://shouji.360tpcdn.com/170918/f7aa8587561e4031553316ada312ab38/com.tencent.qqlive_13049.apk")
+        .enqueue();
 ```
 
 #### 进度监听
 ```java
 DownloadImpl.getInstance()
-		.with(getApplicationContext())
-		.target(new File(this.getExternalCacheDir(), "com.ss.android.article.news_636.apk"))
-		.setUniquePath(false)
-		.setForceDownload(true)
-.url("http://shouji.360tpcdn.com/170918/93d1695d87df5a0c0002058afc0361f1/com.ss.android.article.news_636.apk")
-		.enqueue(new DownloadListenerAdapter() {
-					@Override
-					public void onStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength, Extra extra) {
-						super.onStart(url, userAgent, contentDisposition, mimetype, contentLength, extra);
-					}
+        .with(getApplicationContext())
+        .target(new File(this.getExternalCacheDir(), "com.ss.android.article.news_636.apk"))
+        .setUniquePath(false)
+        .setForceDownload(true)
+        .url("http://shouji.360tpcdn.com/170918/93d1695d87df5a0c0002058afc0361f1/com.ss.android.article.news_636.apk")
+        .enqueue(new DownloadListenerAdapter() {
+@Override
+public void onStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength, Extra extra) {
+        super.onStart(url, userAgent, contentDisposition, mimetype, contentLength, extra);
+        }
 
-					@Override
-					public void onProgress(String url, long downloaded, long length, long usedTime) {
-						super.onProgress(url, downloaded, length, usedTime);
-						Log.i(TAG, " progress:" + downloaded + " url:" + url);
-					}
+@Override
+public void onProgress(String url, long downloaded, long length, long usedTime) {
+        super.onProgress(url, downloaded, length, usedTime);
+        Log.i(TAG, " progress:" + downloaded + " url:" + url);
+        }
 
-					@Override
-					public boolean onResult(Throwable throwable, Uri path, String url, Extra extra) {
-						Log.i(TAG, " path:" + path + " url:" + url + " length:" + new File(path.getPath()).length());
-						return super.onResult(throwable, path, url, extra);
-					}
-		});
+@Override
+public boolean onResult(Throwable throwable, Uri path, String url, Extra extra) {
+        Log.i(TAG, " path:" + path + " url:" + url + " length:" + new File(path.getPath()).length());
+        return super.onResult(throwable, path, url, extra);
+        }
+        });
 ```
 
 ### 默认的文件目录

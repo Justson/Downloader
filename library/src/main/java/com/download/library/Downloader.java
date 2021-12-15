@@ -21,6 +21,7 @@ import android.os.Looper;
 import android.os.StatFs;
 import android.os.SystemClock;
 import android.text.TextUtils;
+import android.util.Base64;
 import android.util.SparseArray;
 
 import java.io.BufferedInputStream;
@@ -230,6 +231,12 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
         if (downloadTask.isCanceled()) {
             return ERROR_USER_CANCEL;
         }
+
+        if (downloadTask.isDataURI()) {
+            error = transferDataFromUrl();
+            return error;
+        }
+
         this.mBeginTime = SystemClock.elapsedRealtime();
         if (!checkNet()) {
             Runtime.getInstance().logError(TAG, " Network error,isForceDownload:" + mDownloadTask.isForceDownload());
@@ -309,6 +316,65 @@ public class Downloader extends com.download.library.AsyncTask implements IDownl
             Thread.currentThread().setName(name);
         }
         return error;
+    }
+
+    private int transferDataFromUrl() {
+        DownloadTask downloadTask = mDownloadTask;
+        String url = downloadTask.getUrl();
+        if (!url.startsWith("data")) {
+            return ERROR_LOAD;
+        }
+        if (!url.contains(",")) {
+            return ERROR_LOAD;
+        }
+        String base64EncodedString = extractContent();
+        if (TextUtils.isEmpty(base64EncodedString)) {
+            return ERROR_LOAD;
+        }
+        byte[] decodedBytes = Base64.decode(base64EncodedString, Base64.DEFAULT);
+        downloadTask.setContentLength(decodedBytes.length);
+        downloadTask.setTotalsLength(decodedBytes.length);
+        RandomAccessFile out = null;
+        try {
+            out = new LoadingRandomAccessFile(downloadTask.getFile());
+            out.seek(0L);
+            out.write(decodedBytes);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            progressFinaly();
+            closeIO(out);
+        }
+        return SUCCESSFUL;
+    }
+
+
+    String extractContent() {
+        DownloadTask downloadTask = mDownloadTask;
+        if (!downloadTask.isDataURI()) {
+            return "";
+        }
+        String url = downloadTask.mUrl;
+        int end;
+        if ((end = url.indexOf(",", 5)) <= 5) {
+            return "";
+        }
+        int start = -1;
+        for (int i = end; i >= 5; i--) {
+            String alpha = String.valueOf(url.charAt(i));
+            if (alpha.equals(";") || alpha.equals(":")) {
+                start = i + 1;
+                break;
+            }
+        }
+
+        String chartset = url.substring(start, end);
+        if (!chartset.equalsIgnoreCase("base64")) {
+            Runtime.getInstance().log(TAG, "unsupport chartset:" + chartset);
+            return "";
+        }
+        String base64EncodedString = url.substring(url.indexOf(",", 5) + 1);
+        return base64EncodedString;
     }
 
     private int doDownload() throws IOException {

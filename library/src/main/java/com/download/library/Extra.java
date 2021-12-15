@@ -206,7 +206,6 @@ public abstract class Extra implements Serializable, Cloneable {
     }
 
 
-
     protected Extra copy(Extra copy) {
         copy.mIsForceDownload = this.mIsForceDownload;
         copy.mEnableIndicator = this.mEnableIndicator;
