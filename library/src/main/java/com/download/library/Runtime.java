@@ -180,7 +180,9 @@ public final class Runtime {
             fileName = getFileNameByContentDisposition(extra.getContentDisposition());
             if (TextUtils.isEmpty(fileName) && !TextUtils.isEmpty(extra.getUrl())) {
                 Uri mUri = Uri.parse(extra.getUrl());
-                fileName = mUri.getPath().substring(mUri.getPath().lastIndexOf('/') + 1);
+                if (null != mUri && !TextUtils.isEmpty(mUri.getPath()) && mUri.getPath().contains("/")) {
+                    fileName = mUri.getPath().substring(mUri.getPath().lastIndexOf('/') + 1);
+                }
             }
             if (!TextUtils.isEmpty(fileName) && fileName.length() > 64) {
                 fileName = fileName.substring(fileName.length() - 64, fileName.length());
