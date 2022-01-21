@@ -105,12 +105,12 @@ public class DownloadNotifier {
 
     void initBuilder(DownloadTask downloadTask) {
         String title = getTitle(downloadTask);
-        this.mDownloadTask = downloadTask;
+        int flags = PendingIntent.FLAG_UPDATE_CURRENT;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            mBuilder.setContentIntent(PendingIntent.getActivity(mContext, 200, new Intent(), PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
-        } else {
-            mBuilder.setContentIntent(PendingIntent.getActivity(mContext, 200, new Intent(), PendingIntent.FLAG_UPDATE_CURRENT));
+            flags |= PendingIntent.FLAG_IMMUTABLE;
         }
+        this.mDownloadTask = downloadTask;
+        mBuilder.setContentIntent(PendingIntent.getActivity(mContext, 200, new Intent(), flags));
         mBuilder.setSmallIcon(mDownloadTask.getDownloadIcon());
         mBuilder.setTicker(mContext.getString(R.string.download_trickter));
         mBuilder.setContentTitle(title);
@@ -143,12 +143,11 @@ public class DownloadNotifier {
     private PendingIntent buildCancelContent(Context context, int id, String url) {
         Intent intentCancel = new Intent(Runtime.getInstance().append(context, NotificationCancelReceiver.ACTION));
         intentCancel.putExtra("TAG", url);
-        PendingIntent pendingIntentCancel;
+        int flags = PendingIntent.FLAG_UPDATE_CURRENT;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            pendingIntentCancel = PendingIntent.getBroadcast(context, id * 1000, intentCancel, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-        } else {
-            pendingIntentCancel = PendingIntent.getBroadcast(context, id * 1000, intentCancel, PendingIntent.FLAG_UPDATE_CURRENT);
+            flags |= PendingIntent.FLAG_IMMUTABLE;
         }
+        PendingIntent pendingIntentCancel = PendingIntent.getBroadcast(context, id * 1000, intentCancel, flags);
         Runtime.getInstance().log(TAG, "buildCancelContent id:" + (id * 1000) + " cancal action:" + Runtime.getInstance().append(context, NotificationCancelReceiver.ACTION));
         return pendingIntentCancel;
     }
@@ -289,18 +288,12 @@ public class DownloadNotifier {
                 public void run() {
                     removeCancelAction();
                     setDelecte(null);
-                    PendingIntent rightPendIntent;
+                    int flags = PendingIntent.FLAG_UPDATE_CURRENT;
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        rightPendIntent = PendingIntent
-                          .getActivity(mContext,
-                            mNotificationId * 10000, mIntent,
-                            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-                    } else {
-                        rightPendIntent = PendingIntent
-                          .getActivity(mContext,
-                            mNotificationId * 10000, mIntent,
-                            PendingIntent.FLAG_UPDATE_CURRENT);
+                        flags |= PendingIntent.FLAG_IMMUTABLE;
                     }
+                    PendingIntent rightPendIntent = PendingIntent
+                      .getActivity(mContext, mNotificationId * 10000, mIntent, flags);
                     mBuilder.setSmallIcon(mDownloadTask.getDownloadDoneIcon());
                     mBuilder.setContentText(mContext.getString(R.string.download_click_open));
                     mBuilder.setProgress(100, 100, false);
