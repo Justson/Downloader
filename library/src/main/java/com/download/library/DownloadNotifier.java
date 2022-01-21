@@ -143,7 +143,12 @@ public class DownloadNotifier {
     private PendingIntent buildCancelContent(Context context, int id, String url) {
         Intent intentCancel = new Intent(Runtime.getInstance().append(context, NotificationCancelReceiver.ACTION));
         intentCancel.putExtra("TAG", url);
-        PendingIntent pendingIntentCancel = PendingIntent.getBroadcast(context, id * 1000, intentCancel, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntentCancel;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            pendingIntentCancel = PendingIntent.getBroadcast(context, id * 1000, intentCancel, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        } else {
+            pendingIntentCancel = PendingIntent.getBroadcast(context, id * 1000, intentCancel, PendingIntent.FLAG_UPDATE_CURRENT);
+        }
         Runtime.getInstance().log(TAG, "buildCancelContent id:" + (id * 1000) + " cancal action:" + Runtime.getInstance().append(context, NotificationCancelReceiver.ACTION));
         return pendingIntentCancel;
     }
@@ -284,10 +289,18 @@ public class DownloadNotifier {
                 public void run() {
                     removeCancelAction();
                     setDelecte(null);
-                    PendingIntent rightPendIntent = PendingIntent
-                            .getActivity(mContext,
-                                    mNotificationId * 10000, mIntent,
-                                    PendingIntent.FLAG_UPDATE_CURRENT);
+                    PendingIntent rightPendIntent;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        rightPendIntent = PendingIntent
+                          .getActivity(mContext,
+                            mNotificationId * 10000, mIntent,
+                            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                    } else {
+                        rightPendIntent = PendingIntent
+                          .getActivity(mContext,
+                            mNotificationId * 10000, mIntent,
+                            PendingIntent.FLAG_UPDATE_CURRENT);
+                    }
                     mBuilder.setSmallIcon(mDownloadTask.getDownloadDoneIcon());
                     mBuilder.setContentText(mContext.getString(R.string.download_click_open));
                     mBuilder.setProgress(100, 100, false);
