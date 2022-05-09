@@ -161,10 +161,6 @@ public final class Runtime {
         return append(context, "Downloader");
     }
 
-    public String getVersion() {
-        return BuildConfig.VERSION_NAME;
-    }
-
     public int generateGlobalId() {
         return mIDGenerator.getAndIncrement();
     }

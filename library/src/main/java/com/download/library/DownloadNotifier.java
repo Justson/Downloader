@@ -82,7 +82,7 @@ public class DownloadNotifier {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 String channelId = "";
                 mBuilder = new NotificationCompat.Builder(mContext,
-                        channelId = mContext.getPackageName().concat(Runtime.getInstance().getVersion()));
+                        channelId = mContext.getPackageName().concat(".downloader"));
                 NotificationChannel mNotificationChannel = new NotificationChannel(channelId,
                         Runtime.getInstance().getApplicationName(context),
                         NotificationManager.IMPORTANCE_LOW);
