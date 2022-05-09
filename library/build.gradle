@@ -1,4 +1,6 @@
 apply plugin: 'com.android.library'
+apply plugin: 'maven-publish'
+
 android {
     compileSdkVersion COMPILE_SDK_VERSION.toInteger()
     buildToolsVersion BUILD_TOOL_VERSION
@@ -38,4 +40,18 @@ dependencies {
     compileOnly 'com.google.android.material:material:1.0.0'
     compileOnly 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.github.Justson:dispatch-queue:v1.0.5'
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            // Creates a Maven publication called "release".
+            release(MavenPublication) {
+                from components.release
+                groupId = 'com.github.Justson'
+                artifactId = 'Downloader'
+                version = 'v5.0.3-androidx'
+            }
+        }
+    }
 }
