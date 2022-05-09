@@ -39,7 +39,7 @@ public final class DownloadImpl {
     private static volatile DownloadImpl sInstance;
     private final ConcurrentHashMap<String, DownloadTask> mTasks = new ConcurrentHashMap<>();
     private volatile static Context mContext;
-    public static final String TAG = Runtime.PREFIX + DownloadImpl.class.getSimpleName();
+    private static final String TAG = Runtime.PREFIX + DownloadImpl.class.getSimpleName();
 
     private DownloadImpl(@NonNull Context context) {
         Context current = mContext;

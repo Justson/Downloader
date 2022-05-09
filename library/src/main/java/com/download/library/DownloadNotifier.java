@@ -107,7 +107,11 @@ public class DownloadNotifier {
     void initBuilder(DownloadTask downloadTask) {
         String title = getTitle(downloadTask);
         this.mDownloadTask = downloadTask;
-        mBuilder.setContentIntent(PendingIntent.getActivity(mContext, 200, new Intent(), PendingIntent.FLAG_UPDATE_CURRENT));
+        int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            flags |= PendingIntent.FLAG_IMMUTABLE;
+        }
+        mBuilder.setContentIntent(PendingIntent.getActivity(mContext, 200, new Intent(), flags));
         mBuilder.setSmallIcon(mDownloadTask.getDownloadIcon());
         mBuilder.setTicker(mContext.getString(R.string.download_trickter));
         mBuilder.setContentTitle(title);
