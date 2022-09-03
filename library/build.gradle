@@ -8,8 +8,8 @@ android {
     defaultConfig {
         minSdkVersion 14
         targetSdkVersion TARGET_SDK_VERSION.toInteger()
-        versionCode 2
-        versionName "5.0.3"
+        versionCode 5
+        versionName "5.0.4"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
 
     }
@@ -50,7 +50,7 @@ afterEvaluate {
                 from components.release
                 groupId = 'com.github.Justson'
                 artifactId = 'Downloader'
-                version = 'v5.0.3-androidx'
+                version = 'v5.0.4-androidx'
             }
         }
     }
