@@ -284,10 +284,12 @@ public class DownloadNotifier {
                 public void run() {
                     removeCancelAction();
                     setDelecte(null);
+                    int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        flags |= PendingIntent.FLAG_IMMUTABLE;
+                    }
                     PendingIntent rightPendIntent = PendingIntent
-                            .getActivity(mContext,
-                                    mNotificationId * 10000, mIntent,
-                                    PendingIntent.FLAG_UPDATE_CURRENT);
+                            .getActivity(mContext, mNotificationId * 10000, mIntent, flags);
                     mBuilder.setSmallIcon(mDownloadTask.getDownloadDoneIcon());
                     mBuilder.setContentText(mContext.getString(R.string.download_click_open));
                     mBuilder.setProgress(100, 100, false);
