@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion COMPILE_SDK_VERSION.toInteger()
-    buildToolsVersion BUILD_TOOL_VERSION
+    compileSdk 32
+    buildToolsVersion '32.0.0'
     defaultConfig {
         applicationId "com.download.sample"
         minSdkVersion 16
-        targetSdkVersion TARGET_SDK_VERSION.toInteger()
+        targetSdkVersion 32
         versionCode 4
         versionName "5.0.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"

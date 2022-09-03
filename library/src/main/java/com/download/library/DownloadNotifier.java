@@ -144,7 +144,11 @@ public class DownloadNotifier {
     private PendingIntent buildCancelContent(Context context, int id, String url) {
         Intent intentCancel = new Intent(Runtime.getInstance().append(context, NotificationCancelReceiver.ACTION));
         intentCancel.putExtra("TAG", url);
-        PendingIntent pendingIntentCancel = PendingIntent.getBroadcast(context, id * 1000, intentCancel, PendingIntent.FLAG_UPDATE_CURRENT);
+        int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            flags |= PendingIntent.FLAG_IMMUTABLE;
+        }
+        PendingIntent pendingIntentCancel = PendingIntent.getBroadcast(context, id * 1000, intentCancel, flags);
         Runtime.getInstance().log(TAG, "buildCancelContent id:" + (id * 1000) + " cancal action:" + Runtime.getInstance().append(context, NotificationCancelReceiver.ACTION));
         return pendingIntentCancel;
     }
