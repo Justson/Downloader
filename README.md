@@ -33,7 +33,7 @@ allprojects {
 ```
 
 ```
- implementation 'com.github.Justson:Downloader:v4.2.0' 
+    implementation 'com.github.Justson:Downloader:v5.0.4-androidx'
 ```
 
 ## 例子
