@@ -35,13 +35,13 @@ allprojects {
 * Support
 
    ```groovy
-	implementation 'com.github.Justson:Downloader:v5.0.0' 
+	implementation 'com.github.Justson:Downloader:v5.0.4' 
 	```
 
 * Androidx
 
    ```groovy
-    implementation 'com.github.Justson:Downloader:v5.0.0-androidx'
+    implementation 'com.github.Justson:Downloader:v5.0.4-androidx'
    ```
 
 ## 例子
