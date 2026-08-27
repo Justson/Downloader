@@ -16,7 +16,7 @@
 
 package com.download.library;
 
-import android.support.v4.content.FileProvider;
+import androidx.core.content.FileProvider;
 
 /**
  * @since 2.0.0

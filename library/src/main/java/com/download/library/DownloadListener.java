@@ -17,7 +17,8 @@
 package com.download.library;
 
 import android.net.Uri;
-import android.support.annotation.MainThread;
+
+import androidx.annotation.MainThread;
 
 /**
  * @author cenxiaozhong

@@ -1,0 +1,8 @@
+jdk:
+  - openjdk11
+
+install:
+  # 仓库里的 demo :app 模块依赖的 com.just.agentweb:agentweb-androidx:4.1.4 已经解析不到
+  # （和这次要发的 :library 无关），JitPack 默认跑全仓库 assemble 会被这个不相关模块拖挂。
+  # 只构建/发布真正要用的 :library。
+  - ./gradlew :library:assemble :library:publishToMavenLocal

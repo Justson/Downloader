@@ -25,8 +25,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.SystemClock;
-import android.support.annotation.NonNull;
-import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 
 import com.queue.library.DispatchThread;
@@ -35,6 +33,9 @@ import com.queue.library.GlobalQueue;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Locale;
+
+import androidx.annotation.NonNull;
+import androidx.core.app.NotificationCompat;
 
 import static android.content.Context.NOTIFICATION_SERVICE;
 import static com.download.library.Downloader.DOWNLOAD_MESSAGE;
@@ -81,7 +82,7 @@ public class DownloadNotifier {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 String channelId = "";
                 mBuilder = new NotificationCompat.Builder(mContext,
-                        channelId = mContext.getPackageName().concat(Runtime.getInstance().getVersion()));
+                        channelId = mContext.getPackageName().concat(".downloader"));
                 NotificationChannel mNotificationChannel = new NotificationChannel(channelId,
                         Runtime.getInstance().getApplicationName(context),
                         NotificationManager.IMPORTANCE_LOW);
@@ -105,11 +106,11 @@ public class DownloadNotifier {
 
     void initBuilder(DownloadTask downloadTask) {
         String title = getTitle(downloadTask);
+        this.mDownloadTask = downloadTask;
         int flags = PendingIntent.FLAG_UPDATE_CURRENT;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             flags |= PendingIntent.FLAG_IMMUTABLE;
         }
-        this.mDownloadTask = downloadTask;
         mBuilder.setContentIntent(PendingIntent.getActivity(mContext, 200, new Intent(), flags));
         mBuilder.setSmallIcon(mDownloadTask.getDownloadIcon());
         mBuilder.setTicker(mContext.getString(R.string.download_trickter));
@@ -255,7 +256,6 @@ public class DownloadNotifier {
             return String.format(Locale.getDefault(), "%.1fGB", (double) byteNum / 1073741824);
         }
     }
-
     void onDownloadPaused() {
         Runtime.getInstance().log(TAG, " onDownloadPaused:" + mDownloadTask.getUrl());
         getNotificationUpdateQueue().postRunnable(new Runnable() {
@@ -293,7 +293,7 @@ public class DownloadNotifier {
                         flags |= PendingIntent.FLAG_IMMUTABLE;
                     }
                     PendingIntent rightPendIntent = PendingIntent
-                      .getActivity(mContext, mNotificationId * 10000, mIntent, flags);
+                            .getActivity(mContext, mNotificationId * 10000, mIntent, flags);
                     mBuilder.setSmallIcon(mDownloadTask.getDownloadDoneIcon());
                     mBuilder.setContentText(mContext.getString(R.string.download_click_open));
                     mBuilder.setProgress(100, 100, false);
@@ -303,6 +303,7 @@ public class DownloadNotifier {
             }, getDelayTime());
         }
     }
+
 
     private void removeCancelAction() {
         try {

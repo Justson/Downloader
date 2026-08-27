@@ -16,11 +16,12 @@
 
 package com.download.library;
 
-import android.support.annotation.DrawableRes;
 
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+
+import androidx.annotation.DrawableRes;
 
 /**
  * @author cenxiaozhong

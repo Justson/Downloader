@@ -17,14 +17,15 @@
 package com.download.library;
 
 import android.content.Context;
-import android.support.annotation.DrawableRes;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.text.TextUtils;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
+import android.text.TextUtils;
+
+import androidx.annotation.DrawableRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import java.io.IOException;
 
 /**
  * @author cenxiaozhong
@@ -35,7 +36,6 @@ public class ResourceRequest<T extends DownloadTask> {
 
     static final String TAG = Runtime.PREFIX + ResourceRequest.class.getSimpleName();
     private DownloadTask mDownloadTask;
-
 
     static ResourceRequest with(Context context) {
         ResourceRequest resourceRequest = new ResourceRequest();

@@ -29,6 +29,6 @@ public interface StorageEngine {
 	String get(String key, String defaultValue);
 
 	public interface StorageEngineFactory {
-		StorageEngine newStoraEngine(Context context);
+		StorageEngine newStorageEngine(Context context);
 	}
 }

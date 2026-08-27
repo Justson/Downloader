@@ -2,18 +2,21 @@
 
 buildscript {
     repositories {
-        jcenter()
+        // jcenter/bintray 已经完全下线，保留会导致 TLS 握手失败直接中断解析（不会 fallback
+        // 到后面的仓库），换成 mavenCentral 承接原先 jcenter 里还在用的坐标（比如 AGP lint
+        // 依赖的 groovy 系列）。
+        mavenCentral()
         google()
         maven { url 'https://jitpack.io' }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.2.0'
+        classpath "com.android.tools.build:gradle:7.0.4"
     }
 }
 
 allprojects {
     repositories {
-        jcenter()
+        mavenCentral()
         google()
         maven { url 'https://jitpack.io' }
     }
