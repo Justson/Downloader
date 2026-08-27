@@ -8,8 +8,8 @@ android {
     defaultConfig {
         minSdkVersion 14
         targetSdkVersion TARGET_SDK_VERSION.toInteger()
-        versionCode 5
-        versionName "5.0.4"
+        versionCode 6
+        versionName "5.0.5"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
 
     }
@@ -40,6 +40,11 @@ dependencies {
     compileOnly 'com.google.android.material:material:1.0.0'
     compileOnly 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.github.Justson:dispatch-queue:v1.0.5'
+    // ContextCompat.registerReceiver(..., flags) 在真正被调用（NotificationCancelReceiver 注册），
+    // 不是纯注解，必须保证运行时可用，所以用 implementation 而不是 compileOnly；1.9.0 是带
+    // exported flag 重载的最低版本，消费方项目通常已有更高版本的 androidx.core，Gradle 按最高版本
+    // 决议不会冲突。
+    implementation 'androidx.core:core:1.9.0'
 }
 
 afterEvaluate {
@@ -50,7 +55,7 @@ afterEvaluate {
                 from components.release
                 groupId = 'com.github.Justson'
                 artifactId = 'Downloader'
-                version = 'v5.0.4-androidx'
+                version = 'v5.0.5-androidx'
             }
         }
     }

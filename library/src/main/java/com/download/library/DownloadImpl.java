@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 
 /**
  * @author cenxiaozhong
@@ -48,7 +49,13 @@ public final class DownloadImpl {
                 if (mContext == null) {
                     current = mContext = context.getApplicationContext();
                     String action = Runtime.getInstance().append(context, NotificationCancelReceiver.ACTION);
-                    current.registerReceiver(new NotificationCancelReceiver(), new IntentFilter(action));
+                    // targetSdk 33（Android 13）起，动态注册广播必须显式声明 exported 标记，否则
+                    // IllegalArgumentException/SecurityException 直接崩溃。这里只在本进程内通过自身
+                    // PendingIntent 触发（下载通知的取消按钮），不需要被其它 App 唤起，用
+                    // RECEIVER_NOT_EXPORTED；ContextCompat 版本在低于 33 的系统上会忽略该标记，兼容
+                    // minSdk 14。
+                    ContextCompat.registerReceiver(current, new NotificationCancelReceiver(), new IntentFilter(action),
+                            ContextCompat.RECEIVER_NOT_EXPORTED);
                     Runtime.getInstance().log(TAG, "registerReceiver:" + action);
 
                 }
